@@ -9,6 +9,8 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 
+const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'numberhub_production_secret_key_9876';
@@ -16,7 +18,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'numberhub_production_secret_key_98
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static(path.join(__dirname)));
 
 // Rate Limiter middleware
 const apiLimiter = rateLimit({
