@@ -170,11 +170,11 @@ function initLocalStorage() {
       userName: 'Omkar',
       country: 'South Africa',
       flag: '🇿🇦',
-      phone: '+27 11 982 4019',
+      phone: '+27 62 429 4370',
       price: 2380,
       carrier: 'Vodacom South Africa',
-      iccid: '892711982401920251',
-      lpaCode: 'LPA:1$esim.numberhub.store$SA-PROFILE-119824019',
+      iccid: '892762429437020251',
+      lpaCode: 'LPA:1$esim.numberhub.store$SA-PROFILE-624294370',
       purchasedAt: '2025-09-29T14:15:00.000Z',
       expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
     },
@@ -184,38 +184,29 @@ function initLocalStorage() {
       userName: 'Omkar',
       country: 'Canada',
       flag: '🇨🇦',
-      phone: '+1 613 555 0192',
+      phone: '+1 343 655 4084',
       price: 5400,
       carrier: 'Rogers Wireless 5G',
-      iccid: '890161355501920241',
-      lpaCode: 'LPA:1$esim.numberhub.store$CANADA-PROFILE-6135550192',
+      iccid: '8901343655408420241',
+      lpaCode: 'LPA:1$esim.numberhub.store$CANADA-PROFILE-3436554084',
       purchasedAt: '2024-02-12T10:30:00.000Z',
       expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
     }
   ];
 
-  defaultNumbers.forEach(dn => {
-    if (!activeNumbers.some(n => n.phone === dn.phone)) {
-      activeNumbers.push(dn);
-    }
-  });
-
-  activeNumbers.forEach(n => {
-    n.userId = 'usr_omkar';
-    n.userName = 'Omkar';
-  });
-  localStorage.setItem('nh_active_numbers', JSON.stringify(activeNumbers));
+  // Overwrite nh_active_numbers in localStorage to force refresh to these 3 phone numbers
+  localStorage.setItem('nh_active_numbers', JSON.stringify(defaultNumbers));
 
   // Transfer all SMS verification messages to Omkar
   let smsList = JSON.parse(localStorage.getItem('nh_sms') || '[]');
   smsList.forEach(s => {
     s.userId = 'usr_omkar';
     s.userName = 'Omkar';
-    if (activeNumbers.length > 0) {
-      s.phone = activeNumbers[0].phone;
+    if (defaultNumbers.length > 0) {
+      s.phone = defaultNumbers[0].phone;
     }
   });
-  if (smsList.length === 0 && activeNumbers.length > 0) {
+  if (smsList.length === 0 && defaultNumbers.length > 0) {
     smsList.unshift({
       id: 'sms_omkar_colombia',
       userId: 'usr_omkar',
@@ -259,7 +250,7 @@ function initLocalStorage() {
       id: 'tx_sa_29092025',
       userId: 'usr_omkar',
       type: 'PURCHASE',
-      description: 'Bought South Africa Virtual Line (+27 11 982 4019)',
+      description: 'Bought South Africa Virtual Line (+27 62 429 4370)',
       amount: -2380,
       date: '2025-09-29T14:15:00.000Z'
     },
@@ -275,7 +266,7 @@ function initLocalStorage() {
       id: 'tx_canada_12022024',
       userId: 'usr_omkar',
       type: 'PURCHASE',
-      description: 'Bought Canada Virtual Line (+1 613 555 0192)',
+      description: 'Bought Canada Virtual Line (+1 343 655 4084)',
       amount: -5400,
       date: '2024-02-12T10:30:00.000Z'
     },
