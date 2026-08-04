@@ -94,6 +94,88 @@
       </section>
     </main>
 
+    <!-- Deposit UTR Modal -->
+    <div id="depositModal" class="modal-overlay">
+      <div class="modal-box" style="max-width: 520px;">
+        <div class="modal-header">
+          <h3 class="modal-title">💳 Add Funds to Wallet (UTR Deposit)</h3>
+          <button type="button" class="modal-close" onclick="closeModal('depositModal')">&times;</button>
+        </div>
+        
+        <div style="background: var(--status-warning-bg); color: var(--status-warning); border: 1px solid rgba(217, 119, 6, 0.3); padding: 0.65rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem;">
+          ⚠️ Funds added via UTR require Admin verification & approval before reflecting in your wallet balance.
+        </div>
+
+        <form onsubmit="submitUTRDeposit(event)">
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label for="utr-amount-input" class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>1. Enter Deposit Amount (₹)</span>
+              <span style="font-size: 0.75rem; color: var(--accent-green); font-weight: 700;">Min deposit: ₹1,500</span>
+            </label>
+            <div style="position: relative;">
+              <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--fg-muted);">₹</span>
+              <input type="number" id="utr-amount-input" class="form-input" style="padding-left: 2.2rem; font-weight: 700; font-size: 1.05rem;" placeholder="1500" value="1500" min="1500" step="10" required oninput="updateDepositQR()" onkeyup="updateDepositQR()">
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="selectDepositPreset(1500)">₹1,500</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="selectDepositPreset(2500)">₹2,500</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="selectDepositPreset(4000)">₹4,000</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="selectDepositPreset(6000)">₹6,000</button>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem 1.25rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem;">
+            <!-- Real Scannable UPI Payment QR Code -->
+            <div style="background: #ffffff; padding: 0.75rem; border-radius: var(--radius-md); border: 2px solid var(--accent-green); text-align: center; box-shadow: 0 4px 16px rgba(0, 153, 102, 0.18); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <img id="upi-qr-image" 
+                   src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=009966&data=upi%3A%2F%2Fpay%3Fpa%3Dparmeetinsa123%40oksbi%26pn%3DNumberHubStore%26am%3D1500%26cu%3DINR%26tn%3DWallet%2520Deposit%26mode%3D02" 
+                   onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=200&text=upi%3A%2F%2Fpay%3Fpa%3Dparmeetinsa123%40oksbi%26pn%3DNumberHubStore%26am%3D1500%26cu%3DINR%26tn%3DWallet%2520Deposit%26mode%3D02';"
+                   alt="UPI Payment QR Code" 
+                   width="160" 
+                   height="160" 
+                   style="display: block; margin: 0 auto; border-radius: 6px;">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--accent-green); margin-top: 8px; letter-spacing: 0.05em;">
+                📷 SCAN WITH ANY UPI APP
+              </div>
+            </div>
+
+            <!-- Payment Info Details -->
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--fg-muted);">
+                Scan QR with GPay, PhonePe, Paytm, BHIM:
+              </div>
+              <div style="font-weight: 800; color: var(--accent-green); font-family: monospace; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <span>parmeetinsa123@oksbi</span>
+                <button type="button" class="btn btn-outline-green btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;" onclick="copyToClipboard('parmeetinsa123@oksbi')">📋 Copy</button>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+                <div style="font-size: 0.825rem; background: var(--accent-green-bg); color: var(--accent-green); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--accent-green-border);">
+                  <span>QR Encoded Amount:</span>
+                  <strong id="qr-amount-display">₹1,500</strong>
+                </div>
+                <a id="upi-pay-deeplink-btn" href="upi://pay?pa=parmeetinsa123@oksbi&pn=NumberHubStore&am=1500&cu=INR&tn=Wallet%20Deposit&mode=02" class="btn btn-outline-green btn-sm" style="font-size: 0.8rem; padding: 0.35rem 0.85rem; text-decoration: none;">⚡ Mobile Tap to Pay (GPay / PhonePe)</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="utr-number-input" class="form-label">2. Enter 12-Digit UTR / Transaction Ref</label>
+            <input type="text" id="utr-number-input" class="form-input" placeholder="e.g. 421098471209" required pattern="[A-Za-z0-9]{8,24}">
+          </div>
+
+          <div style="display: flex; gap: 0.75rem;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">
+              Submit UTR for Admin Verification
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closeModal('depositModal')">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
       <div class="container footer-inner">

@@ -1122,7 +1122,8 @@ function updateDepositQR(customAmt) {
 
 // UTR Deposit Submission Handler
 function submitUTRDeposit(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
+
   const utrInput = document.getElementById('utr-number-input');
   const amountInput = document.getElementById('utr-amount-input');
 
@@ -1136,16 +1137,28 @@ function submitUTRDeposit(event) {
     return;
   }
 
+  // Safe user resolution
+  const sessionStr = localStorage.getItem('nh_session');
+  const sessionUser = sessionStr ? JSON.parse(sessionStr).user : null;
+  const currentUser = state.user || sessionUser;
+
+  if (!currentUser) {
+    showToast('Please sign in to your client account to submit a UTR deposit request.', 'error');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+    return;
+  }
+
   const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-  if (allUTRs.some(u => u.utr === utrVal)) {
+  if (allUTRs.some(u => u.utr.toLowerCase() === utrVal.toLowerCase())) {
     showToast('This UTR reference number has already been submitted!', 'error');
     return;
   }
 
   const newUTR = {
     id: 'utr_' + Date.now(),
-    userId: state.user.id,
-    userName: state.user.name,
+    userId: currentUser.id,
+    userName: currentUser.name,
+    userEmail: currentUser.email || '',
     utr: utrVal,
     amount: amountVal,
     status: 'pending',
@@ -1155,13 +1168,35 @@ function submitUTRDeposit(event) {
   allUTRs.unshift(newUTR);
   localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
 
-  recordActivityLog(state.user.id, state.user.name, 'UTR_DEPOSIT_SUBMITTED', `Submitted UTR ${utrVal} for ₹${amountVal}`);
+  // Sync with Express backend server if reachable
+  try {
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      fetch('/api/wallet/deposit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ utr: utrVal, amount: amountVal })
+      }).catch(err => console.log('Backend sync notice:', err));
+    }
+  } catch (err) {
+    console.log('Backend server offline, UTR saved locally:', err);
+  }
+
+  recordActivityLog(currentUser.id, currentUser.name, 'UTR_DEPOSIT_SUBMITTED', `Submitted UTR ${utrVal} for ₹${amountVal.toLocaleString()}`);
 
   closeModal('depositModal');
   utrInput.value = '';
   amountInput.value = '';
 
-  showToast('UTR Deposit Request submitted! Funds will reflect after admin verification.');
+  showToast(`⚡ UTR Deposit Request (${utrVal}) submitted! Pending Admin verification.`);
+
+  // Instant refresh if admin is viewing console
+  if (window.location.pathname.endsWith('admin.html')) {
+    initAdmin();
+  }
 }
 
 // Admin Operations & Client Surveillance Controller
