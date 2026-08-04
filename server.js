@@ -353,6 +353,20 @@ app.post('/api/admin/utr/reject', authenticateToken, requireAdmin, (req, res) =>
   res.json({ success: true, message: `Rejected UTR deposit ${utrObj.utr}` });
 });
 
+// Admin: Reject All Pending UTRs
+app.post('/api/admin/utr/reject-all', authenticateToken, requireAdmin, (req, res) => {
+  let count = 0;
+  db.utrs.forEach(u => {
+    if (u.status === 'pending') {
+      u.status = 'rejected';
+      count++;
+      logClientActivity(u.userId, u.userName, 'UTR_REJECTED', `Admin rejected UTR ${u.utr}`);
+    }
+  });
+  saveDataToDisk();
+  res.json({ success: true, message: `Rejected all ${count} pending UTR deposit requests.` });
+});
+
 // Client Virtual Line Purchase
 app.post('/api/numbers/purchase', authenticateToken, (req, res) => {
   const { countryName, price } = req.body;

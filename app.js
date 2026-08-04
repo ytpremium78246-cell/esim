@@ -1617,16 +1617,18 @@ function renderAdminPendingUTRs() {
 
   container.innerHTML = '';
 
-  // Fail-safe auto-recovery: Ensure any UTR_DEPOSIT_SUBMITTED in activity logs is rendered in the Pending table
+  // Fail-safe auto-recovery: Ensure any unhandled UTR_DEPOSIT_SUBMITTED in activity logs is rendered in the Pending table
   if (Array.isArray(state.activityLogs)) {
+    const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
     state.activityLogs.forEach(l => {
       if (l.action === 'UTR_DEPOSIT_SUBMITTED' && l.details) {
         const match = l.details.match(/Submitted UTR ([A-Za-z0-9_-]+) for ₹([\d,]+)/);
         if (match) {
           const utrCode = match[1];
           const amountVal = parseFloat(match[2].replace(/,/g, ''));
-          const exists = state.pendingUTRs.some(u => u.utr.toUpperCase() === utrCode.toUpperCase());
-          if (!exists) {
+          const processedInAll = allUTRs.some(u => u.utr && u.utr.toUpperCase() === utrCode.toUpperCase());
+          const processedInState = state.pendingUTRs.some(u => u.utr && u.utr.toUpperCase() === utrCode.toUpperCase());
+          if (!processedInAll && !processedInState) {
             state.pendingUTRs.push({
               id: 'utr_rec_' + (l.timestamp ? new Date(l.timestamp).getTime() : Date.now()),
               userId: l.userId || 'usr_omkar',
@@ -1767,6 +1769,50 @@ function rejectUTR(utrId) {
 
   showToast('UTR deposit request rejected.', 'error');
   initAdmin();
+}
+
+async function rejectAllUTRs() {
+  const pending = state.pendingUTRs.filter(u => u.status === 'pending');
+  if (pending.length === 0) {
+    showToast('No pending deposit requests to reject.', 'error');
+    return;
+  }
+
+  const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+
+  state.pendingUTRs.forEach(u => {
+    if (u.status === 'pending') {
+      u.status = 'rejected';
+      const idx = allUTRs.findIndex(item => item.id === u.id || (item.utr && u.utr && item.utr.toUpperCase() === u.utr.toUpperCase()));
+      if (idx !== -1) {
+        allUTRs[idx].status = 'rejected';
+      } else {
+        allUTRs.push({ ...u, status: 'rejected' });
+      }
+      recordActivityLog(u.userId, u.userName, 'UTR_REJECTED', `Admin rejected deposit request UTR ${u.utr}`);
+    }
+  });
+
+  localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
+  state.pendingUTRs = allUTRs;
+
+  // Sync rejection with backend server
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      await fetch(`${API_BASE}/api/admin/utr/reject-all`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    }
+  } catch (err) {}
+
+  showToast(`Rejected all ${pending.length} pending deposit request(s)!`);
+  renderAdminPendingUTRs();
 }
 
 function renderAdminInventory() {
