@@ -229,93 +229,125 @@ function initLocalStorage() {
   }
   localStorage.setItem('nh_sms', JSON.stringify(smsList));
 
-  // Client Transaction History: Only seed initial history if not already present
-  if (!localStorage.getItem('nh_tx')) {
-    const pastTxList = [
-      {
-        id: 'tx_platform_07062026',
-        userId: 'usr_omkar',
-        type: 'PURCHASE',
-        description: 'Monthly Platform & Maintenance Fee',
-        amount: -29.5,
-        date: '2026-06-07T10:00:00.000Z'
-      },
-      {
-        id: 'tx_colombia_15052026',
-        userId: 'usr_omkar',
-        type: 'PURCHASE',
-        description: 'Bought Colombia Virtual Line (+57 321 7823318)',
-        amount: -4410,
-        date: '2026-05-15T11:30:00.000Z'
-      },
-      {
-        id: 'tx_deposit_4430',
-        userId: 'usr_omkar',
-        type: 'DEPOSIT',
-        description: 'Wallet Top-Up Approved via UTR 942109841526',
-        amount: 4430,
-        date: '2026-05-15T11:00:00.000Z'
-      },
-      {
-        id: 'tx_sa_29092025',
-        userId: 'usr_omkar',
-        type: 'PURCHASE',
-        description: 'Bought South Africa Virtual Line (+27 11 982 4019)',
-        amount: -2380,
-        date: '2025-09-29T14:15:00.000Z'
-      },
-      {
-        id: 'tx_deposit_2400',
-        userId: 'usr_omkar',
-        type: 'DEPOSIT',
-        description: 'Wallet Top-Up Approved via UTR 782019481029',
-        amount: 2400,
-        date: '2025-09-29T11:00:00.000Z'
-      },
-      {
-        id: 'tx_canada_12022024',
-        userId: 'usr_omkar',
-        type: 'PURCHASE',
-        description: 'Bought Canada Virtual Line (+1 613 555 0192)',
-        amount: -5400,
-        date: '2024-02-12T10:30:00.000Z'
-      },
-      {
-        id: 'tx_deposit_5400',
-        userId: 'usr_omkar',
-        type: 'DEPOSIT',
-        description: 'Wallet Top-Up Approved via UTR 984210948201',
-        amount: 5400,
-        date: '2024-01-15T09:00:00.000Z'
-      }
-    ];
+  // Client Transaction History
+  const pastTxList = [
+    {
+      id: 'tx_platform_07062026',
+      userId: 'usr_omkar',
+      type: 'PURCHASE',
+      description: 'Monthly Platform & Maintenance Fee',
+      amount: -29.5,
+      date: '2026-06-07T10:00:00.000Z'
+    },
+    {
+      id: 'tx_colombia_15052026',
+      userId: 'usr_omkar',
+      type: 'PURCHASE',
+      description: 'Bought Colombia Virtual Line (+57 321 7823318)',
+      amount: -4410,
+      date: '2026-05-15T11:30:00.000Z'
+    },
+    {
+      id: 'tx_deposit_4430',
+      userId: 'usr_omkar',
+      type: 'DEPOSIT',
+      description: 'Wallet Top-Up Approved via UTR 942109841526',
+      amount: 4430,
+      date: '2026-05-15T11:00:00.000Z'
+    },
+    {
+      id: 'tx_sa_29092025',
+      userId: 'usr_omkar',
+      type: 'PURCHASE',
+      description: 'Bought South Africa Virtual Line (+27 11 982 4019)',
+      amount: -2380,
+      date: '2025-09-29T14:15:00.000Z'
+    },
+    {
+      id: 'tx_deposit_2400',
+      userId: 'usr_omkar',
+      type: 'DEPOSIT',
+      description: 'Wallet Top-Up Approved via UTR 782019481029',
+      amount: 2400,
+      date: '2025-09-29T11:00:00.000Z'
+    },
+    {
+      id: 'tx_canada_12022024',
+      userId: 'usr_omkar',
+      type: 'PURCHASE',
+      description: 'Bought Canada Virtual Line (+1 613 555 0192)',
+      amount: -5400,
+      date: '2024-02-12T10:30:00.000Z'
+    },
+    {
+      id: 'tx_deposit_5400',
+      userId: 'usr_omkar',
+      type: 'DEPOSIT',
+      description: 'Wallet Top-Up Approved via UTR 984210948201',
+      amount: 5400,
+      date: '2024-01-15T09:00:00.000Z'
+    }
+  ];
+
+  const validDefaultTxIds = [
+    'tx_platform_07062026',
+    'tx_colombia_15052026',
+    'tx_deposit_4430',
+    'tx_sa_29092025',
+    'tx_deposit_2400',
+    'tx_canada_12022024',
+    'tx_deposit_5400'
+  ];
+
+  let rawTxList = JSON.parse(localStorage.getItem('nh_tx') || 'null');
+  if (!rawTxList) {
     localStorage.setItem('nh_tx', JSON.stringify(pastTxList));
   } else {
-    // Purge test UTR 1111111111111111 transactions if present
-    let currentTx = JSON.parse(localStorage.getItem('nh_tx') || '[]');
-    const filteredTx = currentTx.filter(t => {
-      if (!t || !t.description) return true;
-      return !t.description.includes('1111');
+    // Purge test UTR 1111111111111111 or ₹1,500 test deposit from localStorage
+    let cleanTxList = rawTxList.filter(t => {
+      if (!t) return false;
+      if (validDefaultTxIds.includes(t.id)) return true;
+      const desc = String(t.description || '').toLowerCase();
+      const amt = Number(t.amount) || 0;
+      const dateStr = String(t.date || '');
+      if (amt === 1500 || desc.includes('1111') || desc.includes('1500') || dateStr.includes('2026-08-04')) {
+        return false;
+      }
+      return true;
     });
-    if (filteredTx.length !== currentTx.length) {
-      localStorage.setItem('nh_tx', JSON.stringify(filteredTx));
+
+    if (cleanTxList.length !== rawTxList.length) {
+      localStorage.setItem('nh_tx', JSON.stringify(cleanTxList));
       const omkarUser = users.find(u => u.id === 'usr_omkar');
       if (omkarUser) {
         omkarUser.balance = 10.5;
         localStorage.setItem('nh_users', JSON.stringify(users));
       }
+      const sessionStr = localStorage.getItem('nh_session');
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        if (session && session.user && session.user.id === 'usr_omkar') {
+          session.user.balance = 10.5;
+          localStorage.setItem('nh_session', JSON.stringify(session));
+          if (state.user) state.user.balance = 10.5;
+        }
+      }
     }
   }
 
-  // Purge test UTR reference from nh_utrs array if present
-  let currentUtrs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-  const filteredUtrs = currentUtrs.filter(u => {
-    if (!u || !u.utr) return true;
-    return !u.utr.includes('1111');
+  // Purge test UTRs from nh_utrs
+  let rawUtrsList = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+  let cleanUtrsList = rawUtrsList.filter(u => {
+    if (!u) return false;
+    const utrStr = String(u.utr || '');
+    const amt = Number(u.amount) || 0;
+    const dateStr = String(u.date || '');
+    if (utrStr.includes('1111') || amt === 1500 || dateStr.includes('2026-08-04')) {
+      return false;
+    }
+    return true;
   });
-  if (filteredUtrs.length !== currentUtrs.length) {
-    localStorage.setItem('nh_utrs', JSON.stringify(filteredUtrs));
-  }
+  localStorage.setItem('nh_utrs', JSON.stringify(cleanUtrsList));
   if (!localStorage.getItem('nh_logs')) localStorage.setItem('nh_logs', JSON.stringify([]));
 }
 
