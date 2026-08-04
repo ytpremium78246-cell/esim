@@ -146,79 +146,73 @@ function initLocalStorage() {
     }
   }
 
-  // Active Numbers for Omkar matching full transaction purchase history (Colombia, South Africa, Canada)
+  // Active Numbers Initialization (Preserves numbers for ALL registered users)
   let activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
-  
-  const defaultNumbers = [
-    {
-      id: 'num_colombia_omkar',
-      userId: 'usr_omkar',
-      userName: 'Omkar',
-      country: 'Colombia',
-      flag: '🇨🇴',
-      phone: '+57 321 7823318',
-      price: 4410,
-      carrier: 'Claro Colombia 5G',
-      iccid: '895732178233182019',
-      lpaCode: 'LPA:1$esim.numberhub.store$COLOMBIA-PROFILE-3217823318',
-      purchasedAt: '2026-05-15T11:30:00.000Z',
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'num_sa_omkar',
-      userId: 'usr_omkar',
-      userName: 'Omkar',
-      country: 'South Africa',
-      flag: '🇿🇦',
-      phone: '+27 62 429 4370',
-      price: 2380,
-      carrier: 'Vodacom South Africa',
-      iccid: '892762429437020251',
-      lpaCode: 'LPA:1$esim.numberhub.store$SA-PROFILE-624294370',
-      purchasedAt: '2025-09-29T14:15:00.000Z',
-      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'num_canada_omkar',
-      userId: 'usr_omkar',
-      userName: 'Omkar',
-      country: 'Canada',
-      flag: '🇨🇦',
-      phone: '+1 343 655 4084',
-      price: 5400,
-      carrier: 'Rogers Wireless 5G',
-      iccid: '8901343655408420241',
-      lpaCode: 'LPA:1$esim.numberhub.store$CANADA-PROFILE-3436554084',
-      purchasedAt: '2024-02-12T10:30:00.000Z',
-      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  ];
-
-  // Overwrite nh_active_numbers in localStorage to force refresh to these 3 phone numbers
-  localStorage.setItem('nh_active_numbers', JSON.stringify(defaultNumbers));
-
-  // Transfer all SMS verification messages to Omkar
-  let smsList = JSON.parse(localStorage.getItem('nh_sms') || '[]');
-  smsList.forEach(s => {
-    s.userId = 'usr_omkar';
-    s.userName = 'Omkar';
-    if (defaultNumbers.length > 0) {
-      s.phone = defaultNumbers[0].phone;
-    }
-  });
-  if (smsList.length === 0 && defaultNumbers.length > 0) {
-    smsList.unshift({
-      id: 'sms_omkar_colombia',
-      userId: 'usr_omkar',
-      userName: 'Omkar',
-      phone: '+57 321 7823318',
-      sender: 'WhatsApp',
-      otp: '938102',
-      message: `WhatsApp verification code: 938102. Do not share this code with anyone.`,
-      timestamp: '2026-05-15T11:35:00.000Z'
-    });
+  if (activeNumbers.length === 0) {
+    activeNumbers = [
+      {
+        id: 'num_colombia_omkar',
+        userId: 'usr_omkar',
+        userName: 'Omkar',
+        country: 'Colombia',
+        flag: '🇨🇴',
+        phone: '+57 321 7823318',
+        price: 4410,
+        carrier: 'Claro Colombia 5G',
+        iccid: '895732178233182019',
+        lpaCode: 'LPA:1$esim.numberhub.store$COLOMBIA-PROFILE-3217823318',
+        purchasedAt: '2026-05-15T11:30:00.000Z',
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'num_sa_omkar',
+        userId: 'usr_omkar',
+        userName: 'Omkar',
+        country: 'South Africa',
+        flag: '🇿🇦',
+        phone: '+27 62 429 4370',
+        price: 2380,
+        carrier: 'Vodacom South Africa',
+        iccid: '892762429437020251',
+        lpaCode: 'LPA:1$esim.numberhub.store$SA-PROFILE-624294370',
+        purchasedAt: '2025-09-29T14:15:00.000Z',
+        expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'num_canada_omkar',
+        userId: 'usr_omkar',
+        userName: 'Omkar',
+        country: 'Canada',
+        flag: '🇨🇦',
+        phone: '+1 343 655 4084',
+        price: 5400,
+        carrier: 'Rogers Wireless 5G',
+        iccid: '8901343655408420241',
+        lpaCode: 'LPA:1$esim.numberhub.store$CANADA-PROFILE-3436554084',
+        purchasedAt: '2024-02-12T10:30:00.000Z',
+        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+    localStorage.setItem('nh_active_numbers', JSON.stringify(activeNumbers));
   }
-  localStorage.setItem('nh_sms', JSON.stringify(smsList));
+
+  // Initial SMS Verification Seed (Preserves recipient user metadata for all clients)
+  let smsList = JSON.parse(localStorage.getItem('nh_sms') || '[]');
+  if (smsList.length === 0) {
+    smsList = [
+      {
+        id: 'sms_omkar_colombia',
+        userId: 'usr_omkar',
+        userName: 'Omkar',
+        phone: '+57 321 7823318',
+        sender: 'WhatsApp',
+        otp: '938102',
+        message: `WhatsApp verification code: 938102. Do not share this code with anyone.`,
+        timestamp: '2026-05-15T11:35:00.000Z'
+      }
+    ];
+    localStorage.setItem('nh_sms', JSON.stringify(smsList));
+  }
 
   // Client Transaction History
   const pastTxList = [
@@ -1284,16 +1278,17 @@ function populateAdminOTPTargetDropdown() {
   const select = document.getElementById('sim-target-number');
   if (!select) return;
 
+  const activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
   select.innerHTML = '';
-  if (state.activeNumbers.length === 0) {
+  if (activeNumbers.length === 0) {
     select.innerHTML = `<option value="">No Active Client Lines Available</option>`;
     return;
   }
 
-  state.activeNumbers.forEach(n => {
+  activeNumbers.forEach(n => {
     const opt = document.createElement('option');
     opt.value = n.phone;
-    opt.textContent = `${n.flag} ${n.phone} (${n.userName} - ${n.country})`;
+    opt.textContent = `${n.flag || '📱'} ${n.phone} — [Client: ${n.userName}] (${n.country})`;
     select.appendChild(opt);
   });
 }
