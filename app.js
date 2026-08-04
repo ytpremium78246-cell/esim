@@ -1129,11 +1129,12 @@ function submitUTRDeposit(event) {
 
   if (!utrInput || !amountInput) return;
 
-  const utrVal = utrInput.value.trim();
+  const rawUtr = utrInput.value.trim();
+  const utrVal = rawUtr.replace(/[\s-]/g, '').toUpperCase();
   const amountVal = parseFloat(amountInput.value);
 
-  if (!utrVal || isNaN(amountVal) || amountVal < 500) {
-    showToast('Please enter a valid 12-digit UTR reference and minimum amount of ₹500.', 'error');
+  if (!utrVal || utrVal.length < 6 || isNaN(amountVal) || amountVal < 500) {
+    showToast('Please enter a valid UTR transaction reference (e.g. 421098471209) and minimum ₹500 amount.', 'error');
     return;
   }
 
@@ -1149,7 +1150,7 @@ function submitUTRDeposit(event) {
   }
 
   const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-  if (allUTRs.some(u => u.utr.toLowerCase() === utrVal.toLowerCase())) {
+  if (allUTRs.some(u => u.utr.toUpperCase() === utrVal)) {
     showToast('This UTR reference number has already been submitted!', 'error');
     return;
   }
@@ -1167,6 +1168,7 @@ function submitUTRDeposit(event) {
 
   allUTRs.unshift(newUTR);
   localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
+  state.pendingUTRs = allUTRs;
 
   // Sync with Express backend server if reachable
   try {
@@ -1522,6 +1524,22 @@ function approveUTR(utrId) {
   localStorage.setItem('nh_tx', JSON.stringify(tx));
 
   recordActivityLog(utrObj.userId, utrObj.userName, 'UTR_APPROVED', `Admin approved deposit of ₹${utrObj.amount} via UTR ${utrObj.utr}`);
+
+  // Sync approval with server backend API if connected
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      fetch('/api/admin/utr/approve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ utrId })
+      }).catch(err => console.log('Backend approve sync:', err));
+    }
+  } catch (err) {}
 
   showToast(`Approved ₹${utrObj.amount} deposit for ${utrObj.userName}!`);
   initAdmin();
