@@ -3,6 +3,11 @@
  * Monitored Client System with Admin Surveillance & Client Management.
  */
 
+// API Base URL (Supports http://localhost:3001, file://, VS Code Live Server, etc.)
+const API_BASE = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.includes(':3001')) 
+  ? '' 
+  : 'http://localhost:3001';
+
 // Global App State
 const state = {
   user: null,
@@ -1222,23 +1227,29 @@ function submitUTRDeposit(event) {
 
   // Sync with Express backend server if reachable
   try {
+    const sessionStr = localStorage.getItem('nh_session');
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
-    if (token) {
-      fetch('/api/wallet/deposit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          utr: utrVal,
-          amount: amountVal,
-          userId: currentUser.id,
-          userName: currentUser.name,
-          userEmail: currentUser.email || ''
-        })
-      }).catch(err => console.log('Backend sync notice:', err));
-    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    fetch(`${API_BASE}/api/wallet/deposit`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        utr: utrVal,
+        amount: amountVal,
+        userId: currentUser.id,
+        userName: currentUser.name,
+        userEmail: currentUser.email || ''
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.data) {
+        console.log('UTR deposit synced to server:', data.data);
+      }
+    })
+    .catch(err => console.log('Backend deposit sync notice:', err));
   } catch (err) {
     console.log('Backend server offline, UTR saved locally:', err);
   }
@@ -1287,7 +1298,7 @@ async function initAdmin() {
 
     if (token) {
       // Sync UTRs from server backend
-      const utrRes = await fetch('/api/admin/utrs', {
+      const utrRes = await fetch(`${API_BASE}/api/admin/utrs`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (utrRes.ok) {
@@ -1307,7 +1318,7 @@ async function initAdmin() {
       }
 
       // Sync monitored clients from server backend
-      const clientRes = await fetch('/api/admin/clients', {
+      const clientRes = await fetch(`${API_BASE}/api/admin/clients`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (clientRes.ok) {
@@ -1676,7 +1687,7 @@ function approveUTR(utrId) {
     const sessionStr = localStorage.getItem('nh_session');
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
     if (token) {
-      fetch('/api/admin/utr/approve', {
+      fetch(`${API_BASE}/api/admin/utr/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1698,6 +1709,22 @@ function rejectUTR(utrId) {
 
   allUTRs[idx].status = 'rejected';
   localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
+
+  // Sync rejection with backend server
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      fetch(`${API_BASE}/api/admin/utr/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ utrId })
+      }).catch(err => console.log('Backend reject sync:', err));
+    }
+  } catch (err) {}
 
   recordActivityLog(allUTRs[idx].userId, allUTRs[idx].userName, 'UTR_REJECTED', `Admin rejected UTR ${allUTRs[idx].utr}`);
 
