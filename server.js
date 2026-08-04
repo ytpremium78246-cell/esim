@@ -8,12 +8,13 @@ const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
-
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'numberhub_production_secret_key_9876';
+const USERS_FILE_PATH = path.join(__dirname, 'users.json');
 
 // Middleware
 app.use(cors());
@@ -28,7 +29,7 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// In-Memory Database (No dummy client accounts; Admin created by default)
+// In-Memory Database with optional JSON file sync
 const db = {
   users: [
     { 
@@ -58,6 +59,35 @@ const db = {
   transactions: [],
   activityLogs: [] // Full admin monitoring log
 };
+
+// Persistence functions
+function loadUsersFromDisk() {
+  try {
+    if (fs.existsSync(USERS_FILE_PATH)) {
+      const data = fs.readFileSync(USERS_FILE_PATH, 'utf8');
+      const loaded = JSON.parse(data);
+      if (Array.isArray(loaded) && loaded.length > 0) {
+        loaded.forEach(u => {
+          if (!db.users.some(existing => existing.id === u.id || existing.email.toLowerCase() === u.email.toLowerCase())) {
+            db.users.push(u);
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error loading users from disk:', err);
+  }
+}
+
+function saveUsersToDisk() {
+  try {
+    fs.writeFileSync(USERS_FILE_PATH, JSON.stringify(db.users, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error saving users to disk:', err);
+  }
+}
+
+loadUsersFromDisk();
 
 // Activity Monitoring Logger
 function logClientActivity(userId, userName, action, details) {
@@ -135,18 +165,28 @@ app.post('/api/auth/login', (req, res) => {
 app.post('/api/auth/register', (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password || password.length < 6) {
-    return res.status(400).json({ success: false, error: 'Name, valid email, and minimum 6-char password required.' });
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ success: false, error: 'Full name is required.' });
   }
 
-  if (db.users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-    return res.status(400).json({ success: false, error: 'An account with this email already exists.' });
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || typeof email !== 'string' || !emailRegex.test(email.trim())) {
+    return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
+  }
+
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long.' });
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  if (db.users.some(u => u.email.toLowerCase() === normalizedEmail)) {
+    return res.status(400).json({ success: false, error: 'An account with this email address already exists.' });
   }
 
   const newClient = {
     id: 'cli_' + Date.now(),
     name: name.trim(),
-    email: email.toLowerCase().trim(),
+    email: normalizedEmail,
     password: password,
     balance: 0,
     role: 'customer',
@@ -155,6 +195,7 @@ app.post('/api/auth/register', (req, res) => {
   };
 
   db.users.push(newClient);
+  saveUsersToDisk();
 
   // Log creation for admin monitoring
   logClientActivity(newClient.id, newClient.name, 'ACCOUNT_CREATED', `Registered new monitored client account (${newClient.email})`);

@@ -1589,16 +1589,62 @@ function initAuthPage() {
   const registerForm = document.getElementById('register-form');
 
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email-input').value.trim();
       const password = document.getElementById('password-input').value.trim();
 
+      if (!email || !password) {
+        showToast('Please enter both email and password.', 'error');
+        return;
+      }
+
+      // Try Backend REST API first
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            state.user = data.user;
+            state.token = data.token;
+            localStorage.setItem('nh_session', JSON.stringify({ user: state.user, token: state.token }));
+            
+            // Sync with local users array
+            initLocalStorage();
+            let users = JSON.parse(localStorage.getItem('nh_users') || '[]');
+            const idx = users.findIndex(u => u.id === data.user.id || u.email.toLowerCase() === data.user.email.toLowerCase());
+            if (idx !== -1) {
+              users[idx] = { ...users[idx], ...data.user };
+            } else {
+              users.push({ ...data.user, password });
+            }
+            localStorage.setItem('nh_users', JSON.stringify(users));
+
+            showToast(`Welcome back, ${data.user.name}!`);
+            setTimeout(() => {
+              window.location.href = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+            }, 1000);
+            return;
+          }
+        } else if (response.status === 401 || response.status === 403 || response.status === 400) {
+          const data = await response.json();
+          showToast(data.error || 'Invalid credentials', 'error');
+          return;
+        }
+      } catch (err) {
+        console.log('Backend API unreachable, using local storage authentication fallback:', err);
+      }
+
+      // Fallback: LocalStorage Auth
       initLocalStorage();
       let users = JSON.parse(localStorage.getItem('nh_users') || '[]');
       const inputEmail = email.toLowerCase().trim();
 
-      // Flexible matching for Admin (Parmeet) and Client (Omkar)
       let foundUser = users.find(u => {
         const uEmail = u.email.toLowerCase();
         if (password !== u.password) return false;
@@ -1609,7 +1655,6 @@ function initAuthPage() {
         return false;
       });
 
-      // Hardened Fallback Check: Direct match if localStorage was cleared
       if (!foundUser) {
         if ((inputEmail === 'parmeet@numberhub.com' || inputEmail === 'parmeet' || inputEmail === 'admin') && password === 'HrTech@22') {
           foundUser = { id: 'adm_1', email: 'parmeet@numberhub.com', password: 'HrTech@22', name: 'Parmeet (Admin)', balance: 100000, role: 'admin', status: 'active', createdAt: new Date().toISOString() };
@@ -1642,17 +1687,80 @@ function initAuthPage() {
   }
 
   if (registerForm) {
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('reg-name-input').value.trim();
       const email = document.getElementById('reg-email-input').value.trim();
       const password = document.getElementById('reg-password-input').value.trim();
+      const confirmPasswordElem = document.getElementById('reg-confirm-password-input');
+      const confirmPassword = confirmPasswordElem ? confirmPasswordElem.value.trim() : password;
 
-      if (!name || !email || !password || password.length < 6) {
-        showToast('Please enter name, valid email, and minimum 6-character password.', 'error');
+      if (!name || !email || !password) {
+        showToast('Please fill in all required fields.', 'error');
         return;
       }
 
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters long.', 'error');
+        return;
+      }
+
+      if (confirmPassword && password !== confirmPassword) {
+        showToast('Passwords do not match! Please verify.', 'error');
+        return;
+      }
+
+      // 1. Try Backend REST API Server first
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Sync new user to localStorage for offline / mixed mode consistency
+          initLocalStorage();
+          const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
+          const newClient = {
+            id: data.user.id,
+            name: data.user.name,
+            email: data.user.email,
+            password: password,
+            balance: data.user.balance || 0,
+            role: data.user.role || 'customer',
+            status: data.user.status || 'active',
+            createdAt: new Date().toISOString()
+          };
+
+          if (!users.some(u => u.email.toLowerCase() === newClient.email.toLowerCase())) {
+            users.push(newClient);
+            localStorage.setItem('nh_users', JSON.stringify(users));
+          }
+
+          state.user = data.user;
+          state.token = data.token;
+          localStorage.setItem('nh_session', JSON.stringify({ user: state.user, token: state.token }));
+
+          recordActivityLog(data.user.id, data.user.name, 'CLIENT_REGISTERED', `Created new monitored client account (${data.user.email})`);
+
+          showToast(`⚡ Account created! Welcome to NumberHub, ${data.user.name}.`);
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1000);
+          return;
+        } else if (!data.success && data.error) {
+          showToast(data.error, 'error');
+          return;
+        }
+      } catch (err) {
+        console.log('Backend API unreachable, proceeding with client-side registration fallback:', err);
+      }
+
+      // 2. Fallback: Client-Side LocalStorage Registration
+      initLocalStorage();
       const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
       if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
         showToast('An account with this email already exists!', 'error');
@@ -1673,7 +1781,7 @@ function initAuthPage() {
       users.push(newClient);
       localStorage.setItem('nh_users', JSON.stringify(users));
 
-      recordActivityLog(newClient.id, newClient.name, 'CLIENT_REGISTERED', `Created new monitored client account`);
+      recordActivityLog(newClient.id, newClient.name, 'CLIENT_REGISTERED', `Created new monitored client account (${newClient.email})`);
 
       state.user = newClient;
       state.token = 'nh_tok_' + Math.random().toString(36).substring(2);

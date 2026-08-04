@@ -1,0 +1,22 @@
+[
+  {
+    "id": "adm_1",
+    "email": "parmeet@numberhub.com",
+    "password": "HrTech@22",
+    "name": "Parmeet (Admin)",
+    "balance": 100000,
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2024-01-10T09:00:00.000Z"
+  },
+  {
+    "id": "usr_omkar",
+    "email": "omkar23@gmail.com",
+    "password": "omkar@123",
+    "name": "Omkar",
+    "balance": 10.5,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2024-01-15T10:00:00.000Z"
+  }
+]

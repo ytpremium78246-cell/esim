@@ -26,12 +26,22 @@
 
       <!-- Auth Card -->
       <div class="panel-box">
-        <div style="font-size: 1.2rem; font-weight: 800; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
-          Sign In to Your Account
+        <!-- Auth Tabs Switcher -->
+        <div class="auth-tabs">
+          <button type="button" id="btn-tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">
+            🔑 Sign In
+          </button>
+          <button type="button" id="btn-tab-reg" class="auth-tab-btn" onclick="switchAuthTab('register')">
+            ✨ Create Account
+          </button>
         </div>
 
         <!-- Sign In Form -->
         <form id="login-form">
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
+            Sign In to Your Account
+          </div>
+
           <div class="form-group" style="margin-bottom: 1.25rem;">
             <label for="email-input" class="form-label">Email Address</label>
             <input type="email" id="email-input" class="form-input" placeholder="e.g. client@example.com" required>
@@ -44,6 +54,38 @@
 
           <button type="submit" class="btn btn-primary" style="width: 100%;">
             Sign In to Client Portal
+          </button>
+        </form>
+
+        <!-- Register New Account Form -->
+        <form id="register-form" style="display: none;">
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
+            Create Your Client Account
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.1rem;">
+            <label for="reg-name-input" class="form-label">Full Name</label>
+            <input type="text" id="reg-name-input" class="form-input" placeholder="e.g. Rahul Sharma" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.1rem;">
+            <label for="reg-email-input" class="form-label">Email Address</label>
+            <input type="email" id="reg-email-input" class="form-input" placeholder="e.g. rahul@example.com" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.1rem;">
+            <label for="reg-password-input" class="form-label">Password</label>
+            <input type="password" id="reg-password-input" class="form-input" placeholder="At least 6 characters" minlength="6" required>
+            <div class="form-help-text">Must be at least 6 characters.</div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="reg-confirm-password-input" class="form-label">Confirm Password</label>
+            <input type="password" id="reg-confirm-password-input" class="form-input" placeholder="Re-enter password" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            ⚡ Register & Instant Access
           </button>
         </form>
       </div>
