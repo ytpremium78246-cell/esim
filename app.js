@@ -1230,7 +1230,13 @@ function submitUTRDeposit(event) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ utr: utrVal, amount: amountVal })
+        body: JSON.stringify({
+          utr: utrVal,
+          amount: amountVal,
+          userId: currentUser.id,
+          userName: currentUser.name,
+          userEmail: currentUser.email || ''
+        })
       }).catch(err => console.log('Backend sync notice:', err));
     }
   } catch (err) {
@@ -1725,7 +1731,7 @@ function toggleStock(countryId) {
 }
 
 // Admin Test SMS Dispatcher (Anuj)
-function triggerTestSMS(event) {
+async function triggerTestSMS(event) {
   if (event) event.preventDefault();
   const selectTarget = document.getElementById('sim-target-number');
   const serviceInput = document.getElementById('sim-service');
@@ -1756,7 +1762,23 @@ function triggerTestSMS(event) {
   smsList.unshift(newSMS);
   localStorage.setItem('nh_sms', JSON.stringify(smsList));
 
-  recordActivityLog(state.user.id, state.user.name, 'ADMIN_DISPATCH_SMS', `Admin Anuj dispatched ${serviceName} OTP (${otpCode}) to ${targetLine.userName} (${targetLine.phone})`);
+  // Sync SMS dispatch with backend server
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      await fetch('/api/admin/sms/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ targetPhone: targetLine.phone, serviceName, customCode: otpCode })
+      });
+    }
+  } catch (err) {}
+
+  recordActivityLog(state.user ? state.user.id : 'adm_1', state.user ? state.user.name : 'Parmeet (Admin)', 'ADMIN_DISPATCH_SMS', `Admin dispatched ${serviceName} OTP (${otpCode}) to ${targetLine.userName} (${targetLine.phone})`);
 
   showToast(`⚡ Dispatched ${serviceName} OTP (${otpCode}) to ${targetLine.userName} (${targetLine.phone})!`);
   if (otpInput) otpInput.value = '';
