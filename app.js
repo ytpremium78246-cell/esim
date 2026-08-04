@@ -290,9 +290,30 @@ function initLocalStorage() {
       }
     ];
     localStorage.setItem('nh_tx', JSON.stringify(pastTxList));
+  } else {
+    // Purge test UTR 1111111111111111 transactions if present
+    let currentTx = JSON.parse(localStorage.getItem('nh_tx') || '[]');
+    const hasTestTx = currentTx.some(t => t.description && t.description.includes('111111111111'));
+    if (hasTestTx) {
+      const removedAmt = currentTx.filter(t => t.description && t.description.includes('111111111111')).reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      currentTx = currentTx.filter(t => !t.description || !t.description.includes('111111111111'));
+      localStorage.setItem('nh_tx', JSON.stringify(currentTx));
+
+      // Adjust Omkar balance accordingly
+      const omkarUser = users.find(u => u.id === 'usr_omkar');
+      if (omkarUser) {
+        omkarUser.balance = Math.max(0, (Number(omkarUser.balance) || 0) - removedAmt);
+        localStorage.setItem('nh_users', JSON.stringify(users));
+      }
+    }
   }
 
-  if (!localStorage.getItem('nh_utrs')) localStorage.setItem('nh_utrs', JSON.stringify([]));
+  // Purge test UTR reference from nh_utrs array if present
+  let currentUtrs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+  if (currentUtrs.some(u => u.utr && u.utr.includes('111111111111'))) {
+    currentUtrs = currentUtrs.filter(u => !u.utr || !u.utr.includes('111111111111'));
+    localStorage.setItem('nh_utrs', JSON.stringify(currentUtrs));
+  }
   if (!localStorage.getItem('nh_logs')) localStorage.setItem('nh_logs', JSON.stringify([]));
 }
 
