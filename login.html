@@ -3,100 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NumberHub Client Portal - Sign In</title>
+  <title>NumberHub Client Portal - Sign In & Register</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="app-container" style="justify-content: center; align-items: center; background: radial-gradient(circle at 50% 30%, rgba(0, 153, 102, 0.08) 0%, rgba(236, 253, 245, 1) 70%);">
-    <div style="width: 100%; max-width: 440px; padding: 1.5rem;">
-      
-      <!-- Brand Header -->
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <a href="index.html" class="brand-logo" style="justify-content: center; font-size: 1.75rem;">
+  <div class="app-container">
+    <!-- Theme-Consistent Navbar Header -->
+    <header class="navbar">
+      <div class="container navbar-inner">
+        <a href="index.html" class="brand-logo">
           <div class="brand-icon">⚡</div>
           <span>Number<span class="brand-highlight">Hub</span></span>
         </a>
-        <p style="color: var(--fg-muted); font-size: 0.95rem; margin-top: 0.5rem;">
-          Client Portal • Access Virtual Lines & SMS Inbox
-        </p>
-      </div>
 
-      <!-- Auth Card -->
-      <div class="panel-box">
-        <!-- Auth Tabs Switcher -->
-        <div class="auth-tabs">
-          <button type="button" id="btn-tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">
-            🔑 Sign In
-          </button>
-          <button type="button" id="btn-tab-reg" class="auth-tab-btn" onclick="switchAuthTab('register')">
-            ✨ Create Account
-          </button>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Storefront</a></li>
+          <li><a href="dashboard.html" class="nav-link">Client Dashboard</a></li>
+          <li><a href="transactions.html" class="nav-link">Transaction History</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <a href="index.html" class="btn btn-outline-green btn-sm">🛒 Browse Store</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace with Radial Emerald Ambient Glow -->
+    <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; background: radial-gradient(circle at 50% 30%, rgba(0, 153, 102, 0.08) 0%, rgba(236, 253, 245, 1) 70%);">
+      <div style="width: 100%; max-width: 440px;">
+        
+        <!-- Brand Header -->
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+          <div class="tier-badge" style="margin-bottom: 0.75rem; display: inline-block;">
+            ⚡ Instant Virtual Lines & OTP Delivery
+          </div>
+          <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--fg-main); margin-bottom: 0.35rem;">
+            Number<span class="brand-highlight">Hub</span> Client Portal
+          </h1>
+          <p style="color: var(--fg-muted); font-size: 0.92rem;">
+            Access Private Lines, Live SMS Inbox & Account Settings
+          </p>
         </div>
 
-        <!-- Sign In Form -->
-        <form id="login-form">
-          <div style="font-size: 1.1rem; font-weight: 700; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
-            Sign In to Your Account
+        <!-- Auth Panel Card -->
+        <div class="panel-box" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 1.75rem;">
+          <!-- Auth Tabs Switcher -->
+          <div class="auth-tabs">
+            <button type="button" id="btn-tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">
+              🔑 Sign In
+            </button>
+            <button type="button" id="btn-tab-reg" class="auth-tab-btn" onclick="switchAuthTab('register')">
+              ✨ Create Account
+            </button>
           </div>
 
-          <div class="form-group" style="margin-bottom: 1.25rem;">
-            <label for="email-input" class="form-label">Email Address</label>
-            <input type="email" id="email-input" class="form-input" placeholder="e.g. client@example.com" required>
-          </div>
+          <!-- Sign In Form -->
+          <form id="login-form">
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
+              Sign In to Your Account
+            </div>
 
-          <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label for="password-input" class="form-label">Password</label>
-            <input type="password" id="password-input" class="form-input" placeholder="••••••••" required>
-          </div>
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label for="email-input" class="form-label">Email Address</label>
+              <input type="email" id="email-input" class="form-input" placeholder="e.g. client@example.com" required>
+            </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
-            Sign In to Client Portal
-          </button>
-        </form>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="password-input" class="form-label">Password</label>
+              <input type="password" id="password-input" class="form-input" placeholder="••••••••" required>
+            </div>
 
-        <!-- Register New Account Form -->
-        <form id="register-form" style="display: none;">
-          <div style="font-size: 1.1rem; font-weight: 700; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
-            Create Your Client Account
-          </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              Sign In to Client Portal
+            </button>
+          </form>
 
-          <div class="form-group" style="margin-bottom: 1.1rem;">
-            <label for="reg-name-input" class="form-label">Full Name</label>
-            <input type="text" id="reg-name-input" class="form-input" placeholder="e.g. Rahul Sharma" required>
-          </div>
+          <!-- Register New Account Form -->
+          <form id="register-form" style="display: none;">
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
+              Create Your Client Account
+            </div>
 
-          <div class="form-group" style="margin-bottom: 1.1rem;">
-            <label for="reg-email-input" class="form-label">Email Address</label>
-            <input type="email" id="reg-email-input" class="form-input" placeholder="e.g. rahul@example.com" required>
-          </div>
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+              <label for="reg-name-input" class="form-label">Full Name</label>
+              <input type="text" id="reg-name-input" class="form-input" placeholder="e.g. Rahul Sharma" required>
+            </div>
 
-          <div class="form-group" style="margin-bottom: 1.1rem;">
-            <label for="reg-password-input" class="form-label">Password</label>
-            <input type="password" id="reg-password-input" class="form-input" placeholder="At least 6 characters" minlength="6" required>
-            <div class="form-help-text">Must be at least 6 characters.</div>
-          </div>
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+              <label for="reg-email-input" class="form-label">Email Address</label>
+              <input type="email" id="reg-email-input" class="form-input" placeholder="e.g. rahul@example.com" required>
+            </div>
 
-          <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label for="reg-confirm-password-input" class="form-label">Confirm Password</label>
-            <input type="password" id="reg-confirm-password-input" class="form-input" placeholder="Re-enter password" required>
-          </div>
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+              <label for="reg-password-input" class="form-label">Password</label>
+              <input type="password" id="reg-password-input" class="form-input" placeholder="At least 6 characters" minlength="6" required>
+              <div class="form-help-text">Must be at least 6 characters.</div>
+            </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
-            ⚡ Register & Instant Access
-          </button>
-        </form>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="reg-confirm-password-input" class="form-label">Confirm Password</label>
+              <input type="password" id="reg-confirm-password-input" class="form-input" placeholder="Re-enter password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              ⚡ Register & Instant Access
+            </button>
+          </form>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem;">
+          <a href="index.html" style="color: var(--fg-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+            ← Back to Storefront
+          </a>
+        </div>
+
       </div>
+    </main>
 
-      <div style="text-align: center; margin-top: 1.5rem;">
-        <a href="index.html" style="color: var(--fg-muted); text-decoration: none; font-size: 0.9rem;">
-          ← Back to Storefront
-        </a>
+    <!-- Theme Footer -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>
+          <strong style="color: var(--fg-main);">NumberHub Store</strong> &copy; 2026. All rights reserved.
+        </div>
+        <div style="display: flex; gap: 1.5rem;">
+          <a href="index.html" style="color: var(--fg-muted); text-decoration: none;">Storefront</a>
+          <a href="dashboard.html" style="color: var(--fg-muted); text-decoration: none;">Client Portal</a>
+        </div>
       </div>
-
-    </div>
+    </footer>
   </div>
 
   <script src="app.js"></script>
