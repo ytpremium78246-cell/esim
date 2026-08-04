@@ -1616,6 +1616,33 @@ function renderAdminPendingUTRs() {
   if (!container) return;
 
   container.innerHTML = '';
+
+  // Fail-safe auto-recovery: Ensure any UTR_DEPOSIT_SUBMITTED in activity logs is rendered in the Pending table
+  if (Array.isArray(state.activityLogs)) {
+    state.activityLogs.forEach(l => {
+      if (l.action === 'UTR_DEPOSIT_SUBMITTED' && l.details) {
+        const match = l.details.match(/Submitted UTR ([A-Za-z0-9_-]+) for ₹([\d,]+)/);
+        if (match) {
+          const utrCode = match[1];
+          const amountVal = parseFloat(match[2].replace(/,/g, ''));
+          const exists = state.pendingUTRs.some(u => u.utr.toUpperCase() === utrCode.toUpperCase());
+          if (!exists) {
+            state.pendingUTRs.push({
+              id: 'utr_rec_' + (l.timestamp ? new Date(l.timestamp).getTime() : Date.now()),
+              userId: l.userId || 'usr_omkar',
+              userName: l.userName || 'Customer',
+              userEmail: '',
+              utr: utrCode,
+              amount: amountVal,
+              status: 'pending',
+              date: l.timestamp || new Date().toISOString()
+            });
+          }
+        }
+      }
+    });
+  }
+
   const pending = state.pendingUTRs.filter(u => u.status === 'pending');
 
   if (pending.length === 0) {
@@ -1640,11 +1667,21 @@ function renderAdminPendingUTRs() {
 }
 
 function approveUTR(utrId) {
-  const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-  const idx = allUTRs.findIndex(u => u.id === utrId);
-  if (idx === -1) return;
+  let allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+  let idx = allUTRs.findIndex(u => u.id === utrId);
+  let utrObj = null;
 
-  const utrObj = allUTRs[idx];
+  if (idx !== -1) {
+    utrObj = allUTRs[idx];
+  } else {
+    utrObj = state.pendingUTRs.find(u => u.id === utrId);
+    if (utrObj) {
+      allUTRs.unshift(utrObj);
+      idx = 0;
+    }
+  }
+
+  if (!utrObj) return;
   utrObj.status = 'approved';
   localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
 
