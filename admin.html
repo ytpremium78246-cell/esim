@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Surveillance & Control Console - NumberHub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="container navbar-inner">
+        <a href="index.html" class="brand-logo">
+          <div class="brand-icon" style="background: var(--status-warning-bg); color: var(--status-warning); border-color: rgba(217, 119, 6, 0.3);">👑</div>
+          <span>Number<span class="brand-highlight">Hub</span> <span style="font-size: 0.8rem; color: var(--status-warning); font-weight: 700;">ADMIN MONITOR</span></span>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Storefront</a></li>
+          <li><a href="dashboard.html" class="nav-link">Customer Workspace</a></li>
+          <li><a href="admin.html" class="nav-link active">Admin Console</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <button class="btn btn-secondary btn-sm" onclick="handleLogout()">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main style="flex: 1; padding: 2rem 0;">
+      <div class="container">
+        
+        <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--fg-main);">
+              Client Monitoring & Control Center
+            </h1>
+            <p style="color: var(--fg-muted);">Full real-time surveillance of client accounts, balance control, UTR verifications, and activity logs.</p>
+          </div>
+          <button class="btn btn-primary" onclick="initAdmin()">
+            🔄 Refresh Surveillance Feed
+          </button>
+        </div>
+
+        <!-- Registered Clients Oversight Table -->
+        <div class="panel-box" style="margin-bottom: 2.5rem;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>👥 Monitored Client Accounts</span>
+            </div>
+            <span style="font-size: 0.85rem; color: var(--fg-muted);">Real-time account controls</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client Name & Email</th>
+                  <th>Wallet Balance</th>
+                  <th>Lines Bought</th>
+                  <th>Status</th>
+                  <th>Registered Date</th>
+                  <th>Admin Controls</th>
+                </tr>
+              </thead>
+              <tbody id="admin-clients-body">
+                <!-- Rendered via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Active Client Virtual Phone Lines & Admin Controls Table -->
+        <div class="panel-box" style="margin-bottom: 2.5rem;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>📱 Active Client Virtual Lines Control (Admin Anuj)</span>
+            </div>
+            <span style="font-size: 0.85rem; color: var(--fg-muted);">Change allotted phone numbers & dispatch targeted OTPs</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Country</th>
+                  <th>Active Phone Number</th>
+                  <th>Carrier</th>
+                  <th>Allotted Time</th>
+                  <th>Admin Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-numbers-body">
+                <!-- Rendered via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dashboard-grid" style="grid-template-columns: 1.5fr 1fr; margin-bottom: 2.5rem;">
+          
+          <!-- UTR Deposit Approvals Queue -->
+          <div class="panel-box">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span>💳 Pending UTR Deposit Requests</span>
+              </div>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>UTR Ref</th>
+                    <th>Amount</th>
+                    <th>Time</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-utr-list">
+                  <!-- Rendered via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Targeted SMS OTP Generator / Simulator -->
+          <div class="panel-box">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span>📨 Admin SMS OTP Dispatcher (Anuj)</span>
+              </div>
+            </div>
+            
+            <form onsubmit="triggerTestSMS(event)">
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="sim-target-number" class="form-label">Target Active Client Line</label>
+                <select id="sim-target-number" class="form-select">
+                  <!-- Rendered dynamically by app.js -->
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="sim-service" class="form-label">Sender Service</label>
+                <select id="sim-service" class="form-select">
+                  <option value="Telegram">Telegram Verification</option>
+                  <option value="WhatsApp">WhatsApp OTP</option>
+                  <option value="Google">Google Security Code</option>
+                  <option value="OpenAI">OpenAI Auth Code</option>
+                  <option value="Binance">Binance Crypto OTP</option>
+                  <option value="Amazon">Amazon Sign-In Code</option>
+                  <option value="Bank-OTP">Bank Transaction OTP</option>
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="sim-otp" class="form-label">Custom OTP Code (Blank for random 6-digit)</label>
+                <input type="text" id="sim-otp" class="form-input" placeholder="e.g. 583921">
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%;">
+                ⚡ Dispatch Custom OTP to Selected Line
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- Real-Time Client Surveillance Log Feed -->
+        <div class="panel-box" style="margin-bottom: 2.5rem;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="live-indicator"></span>
+              <span>Live Client Surveillance Log Feed</span>
+            </div>
+            <span style="font-size: 0.8rem; color: var(--fg-muted);">All client logins, purchases, deposits & copies</span>
+          </div>
+
+          <div id="admin-activity-logs" style="max-height: 340px; overflow-y: auto;">
+            <!-- Rendered via app.js -->
+          </div>
+        </div>
+
+        <!-- Inventory Stock Controls -->
+        <div class="panel-box">
+          <div class="panel-header">
+            <div class="panel-title">🌐 Global Country Inventory Stock Controls</div>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th>Tier Level</th>
+                  <th>Base Price (₹)</th>
+                  <th>Stock Availability</th>
+                  <th>Toggle Stock</th>
+                </tr>
+              </thead>
+              <tbody id="admin-inventory-body">
+                <!-- Rendered via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>
+          <strong style="color: var(--fg-main);">NumberHub Admin Surveillance Console</strong> &copy; 2026.
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

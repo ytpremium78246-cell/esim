@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NumberHub Client Portal - Sign In</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container" style="justify-content: center; align-items: center; background: radial-gradient(circle at 50% 30%, rgba(0, 153, 102, 0.08) 0%, rgba(236, 253, 245, 1) 70%);">
+    <div style="width: 100%; max-width: 440px; padding: 1.5rem;">
+      
+      <!-- Brand Header -->
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <a href="index.html" class="brand-logo" style="justify-content: center; font-size: 1.75rem;">
+          <div class="brand-icon">⚡</div>
+          <span>Number<span class="brand-highlight">Hub</span></span>
+        </a>
+        <p style="color: var(--fg-muted); font-size: 0.95rem; margin-top: 0.5rem;">
+          Client Portal • Access Virtual Lines & SMS Inbox
+        </p>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="panel-box">
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--fg-main); margin-bottom: 1.25rem; text-align: center;">
+          Sign In to Your Account
+        </div>
+
+        <!-- Sign In Form -->
+        <form id="login-form">
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label for="email-input" class="form-label">Email Address</label>
+            <input type="email" id="email-input" class="form-input" placeholder="e.g. client@example.com" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="password-input" class="form-label">Password</label>
+            <input type="password" id="password-input" class="form-input" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Sign In to Client Portal
+          </button>
+        </form>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <a href="index.html" style="color: var(--fg-muted); text-decoration: none; font-size: 0.9rem;">
+          ← Back to Storefront
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

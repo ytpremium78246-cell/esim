@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NumberHub - Instant Virtual Numbers & eSIM Store</title>
+  <meta name="description" content="Secure virtual phone numbers and eSIM services for instant SMS verification across 60+ countries worldwide.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="container navbar-inner">
+        <a href="index.html" class="brand-logo">
+          <div class="brand-icon">⚡</div>
+          <span>Number<span class="brand-highlight">Hub</span></span>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link active">Storefront</a></li>
+          <li><a href="dashboard.html" class="nav-link">Client Dashboard</a></li>
+          <li><a href="transactions.html" class="nav-link">Transaction History</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <div id="header-wallet" class="wallet-badge" style="display: none;"></div>
+          <a href="login.html" class="btn btn-primary btn-sm">Sign In to Client Portal</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Hero -->
+    <main style="flex: 1;">
+      <section class="hero-section">
+        <div class="container">
+          <div class="tier-badge" style="margin-bottom: 1rem; display: inline-block;">
+            ⚡ 60+ Countries Available • Instant OTP Delivery
+          </div>
+          <h1 class="hero-title">
+            Secure Virtual Numbers & <br><span style="color: var(--accent-green);">eSIM Verification Lines</span>
+          </h1>
+          <p class="hero-subtitle">
+            Get instant private virtual phone numbers for Telegram, WhatsApp, OpenAI, Google, and 500+ digital services with transparent pricing tiers.
+          </p>
+
+          <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem;">
+            <a href="login.html" class="btn btn-primary btn-lg">Sign In to Account</a>
+            <a href="#marketplace" class="btn btn-secondary btn-lg">Browse Country Pricing</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Country Directory Marketplace -->
+      <section id="marketplace" style="padding: 2rem 0 4rem;">
+        <div class="container">
+          <h2 class="section-title">Global Country Directory & Pricing Tiers</h2>
+          
+          <!-- Search & Filter Controls -->
+          <div class="filter-card">
+            <div class="filter-grid">
+              <div class="form-group">
+                <label for="country-search" class="form-label">Search Country</label>
+                <input type="text" id="country-search" class="form-input" placeholder="e.g. Philippines, United Kingdom, India...">
+              </div>
+              <div class="form-group">
+                <label for="tier-filter" class="form-label">Price Tier</label>
+                <select id="tier-filter" class="form-select">
+                  <option value="all">All Tiers (1 - 7)</option>
+                  <option value="1">Tier 1 (₹1,950 - ₹2,480)</option>
+                  <option value="2">Tier 2 (₹2,480 - ₹3,010)</option>
+                  <option value="3">Tier 3 (₹3,010 - ₹3,780)</option>
+                  <option value="4">Tier 4 (₹3,780 - ₹4,250)</option>
+                  <option value="5">Tier 5 (₹4,250 - ₹5,100)</option>
+                  <option value="6">Tier 6 (₹5,100 - ₹5,940)</option>
+                  <option value="7">Tier 7 (₹5,950 - ₹6,300)</option>
+                  <option value="out">Out of Stock (> 7 Coins)</option>
+                </select>
+              </div>
+              <div class="form-group" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="initStorefront()">🔄 Refresh Catalog</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Country Cards Grid -->
+          <div id="country-grid" class="country-grid">
+            <!-- Dynamic Country Cards Rendered via app.js -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>
+          <strong style="color: var(--fg-main);">NumberHub Store</strong> &copy; 2026. All rights reserved.
+        </div>
+        <div style="display: flex; gap: 1.5rem;">
+          <a href="login.html" style="color: var(--fg-muted); text-decoration: none;">Client Portal</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
