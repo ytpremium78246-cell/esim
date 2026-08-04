@@ -121,19 +121,28 @@ function initLocalStorage() {
     users[omkarIdx].name = 'Omkar';
     users[omkarIdx].email = 'omkar23@gmail.com';
     users[omkarIdx].password = 'omkar@123';
-    users[omkarIdx].balance = 10.5;
+    if (users[omkarIdx].balance === undefined || users[omkarIdx].balance === null) {
+      users[omkarIdx].balance = 10.5;
+    }
     users[omkarIdx].role = 'customer';
     users[omkarIdx].createdAt = '2024-01-15T10:00:00.000Z';
   }
 
   localStorage.setItem('nh_users', JSON.stringify(users));
 
-  const session = JSON.parse(localStorage.getItem('nh_session') || 'null');
-  if (session && session.user && (session.user.email === 'omkar23@gmail.com' || session.user.id === 'usr_omkar')) {
-    session.user.balance = 10.5;
-    localStorage.setItem('nh_session', JSON.stringify(session));
-    if (state.user && state.user.id === session.user.id) {
-      state.user.balance = 10.5;
+  const sessionStr = localStorage.getItem('nh_session');
+  if (sessionStr) {
+    const session = JSON.parse(sessionStr);
+    if (session && session.user) {
+      const activeUser = users.find(u => u.id === session.user.id);
+      if (activeUser) {
+        session.user.balance = activeUser.balance;
+        session.user.status = activeUser.status;
+        localStorage.setItem('nh_session', JSON.stringify(session));
+        if (state.user && state.user.id === session.user.id) {
+          state.user.balance = activeUser.balance;
+        }
+      }
     }
   }
 
@@ -220,66 +229,68 @@ function initLocalStorage() {
   }
   localStorage.setItem('nh_sms', JSON.stringify(smsList));
 
-  // Client Transaction History: Total Deposits (₹12,230) - Total Purchases (₹12,219.50) = ₹10.50 Balance Left
-  const pastTxList = [
-    {
-      id: 'tx_platform_07062026',
-      userId: 'usr_omkar',
-      type: 'PURCHASE',
-      description: 'Monthly Platform & Maintenance Fee',
-      amount: -29.5,
-      date: '2026-06-07T10:00:00.000Z'
-    },
-    {
-      id: 'tx_colombia_15052026',
-      userId: 'usr_omkar',
-      type: 'PURCHASE',
-      description: 'Bought Colombia Virtual Line (+57 321 7823318)',
-      amount: -4410,
-      date: '2026-05-15T11:30:00.000Z'
-    },
-    {
-      id: 'tx_deposit_4430',
-      userId: 'usr_omkar',
-      type: 'DEPOSIT',
-      description: 'Wallet Top-Up Approved via UTR 942109841526',
-      amount: 4430,
-      date: '2026-05-15T11:00:00.000Z'
-    },
-    {
-      id: 'tx_sa_29092025',
-      userId: 'usr_omkar',
-      type: 'PURCHASE',
-      description: 'Bought South Africa Virtual Line (+27 11 982 4019)',
-      amount: -2380,
-      date: '2025-09-29T14:15:00.000Z'
-    },
-    {
-      id: 'tx_deposit_2400',
-      userId: 'usr_omkar',
-      type: 'DEPOSIT',
-      description: 'Wallet Top-Up Approved via UTR 782019481029',
-      amount: 2400,
-      date: '2025-09-29T11:00:00.000Z'
-    },
-    {
-      id: 'tx_canada_12022024',
-      userId: 'usr_omkar',
-      type: 'PURCHASE',
-      description: 'Bought Canada Virtual Line (+1 613 555 0192)',
-      amount: -5400,
-      date: '2024-02-12T10:30:00.000Z'
-    },
-    {
-      id: 'tx_deposit_5400',
-      userId: 'usr_omkar',
-      type: 'DEPOSIT',
-      description: 'Wallet Top-Up Approved via UTR 984210948201',
-      amount: 5400,
-      date: '2024-01-15T09:00:00.000Z'
-    }
-  ];
-  localStorage.setItem('nh_tx', JSON.stringify(pastTxList));
+  // Client Transaction History: Only seed initial history if not already present
+  if (!localStorage.getItem('nh_tx')) {
+    const pastTxList = [
+      {
+        id: 'tx_platform_07062026',
+        userId: 'usr_omkar',
+        type: 'PURCHASE',
+        description: 'Monthly Platform & Maintenance Fee',
+        amount: -29.5,
+        date: '2026-06-07T10:00:00.000Z'
+      },
+      {
+        id: 'tx_colombia_15052026',
+        userId: 'usr_omkar',
+        type: 'PURCHASE',
+        description: 'Bought Colombia Virtual Line (+57 321 7823318)',
+        amount: -4410,
+        date: '2026-05-15T11:30:00.000Z'
+      },
+      {
+        id: 'tx_deposit_4430',
+        userId: 'usr_omkar',
+        type: 'DEPOSIT',
+        description: 'Wallet Top-Up Approved via UTR 942109841526',
+        amount: 4430,
+        date: '2026-05-15T11:00:00.000Z'
+      },
+      {
+        id: 'tx_sa_29092025',
+        userId: 'usr_omkar',
+        type: 'PURCHASE',
+        description: 'Bought South Africa Virtual Line (+27 11 982 4019)',
+        amount: -2380,
+        date: '2025-09-29T14:15:00.000Z'
+      },
+      {
+        id: 'tx_deposit_2400',
+        userId: 'usr_omkar',
+        type: 'DEPOSIT',
+        description: 'Wallet Top-Up Approved via UTR 782019481029',
+        amount: 2400,
+        date: '2025-09-29T11:00:00.000Z'
+      },
+      {
+        id: 'tx_canada_12022024',
+        userId: 'usr_omkar',
+        type: 'PURCHASE',
+        description: 'Bought Canada Virtual Line (+1 613 555 0192)',
+        amount: -5400,
+        date: '2024-02-12T10:30:00.000Z'
+      },
+      {
+        id: 'tx_deposit_5400',
+        userId: 'usr_omkar',
+        type: 'DEPOSIT',
+        description: 'Wallet Top-Up Approved via UTR 984210948201',
+        amount: 5400,
+        date: '2024-01-15T09:00:00.000Z'
+      }
+    ];
+    localStorage.setItem('nh_tx', JSON.stringify(pastTxList));
+  }
 
   if (!localStorage.getItem('nh_utrs')) localStorage.setItem('nh_utrs', JSON.stringify([]));
   if (!localStorage.getItem('nh_logs')) localStorage.setItem('nh_logs', JSON.stringify([]));
@@ -1342,8 +1353,22 @@ function approveUTR(utrId) {
   const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
   const userIdx = users.findIndex(u => u.id === utrObj.userId);
   if (userIdx !== -1) {
-    users[userIdx].balance += utrObj.amount;
+    users[userIdx].balance = (Number(users[userIdx].balance) || 0) + Number(utrObj.amount);
     localStorage.setItem('nh_users', JSON.stringify(users));
+
+    // Instantly sync active session if target client is logged in
+    const sessionStr = localStorage.getItem('nh_session');
+    if (sessionStr) {
+      const session = JSON.parse(sessionStr);
+      if (session && session.user && session.user.id === utrObj.userId) {
+        session.user.balance = users[userIdx].balance;
+        localStorage.setItem('nh_session', JSON.stringify(session));
+        if (state.user && state.user.id === utrObj.userId) {
+          state.user.balance = users[userIdx].balance;
+          updateHeaderUI();
+        }
+      }
+    }
   }
 
   const tx = JSON.parse(localStorage.getItem('nh_tx') || '[]');
@@ -1352,7 +1377,7 @@ function approveUTR(utrId) {
     userId: utrObj.userId,
     type: 'DEPOSIT',
     description: `Wallet Top-Up Approved via UTR ${utrObj.utr}`,
-    amount: utrObj.amount,
+    amount: Number(utrObj.amount),
     date: new Date().toISOString()
   });
   localStorage.setItem('nh_tx', JSON.stringify(tx));
