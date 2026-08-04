@@ -648,8 +648,39 @@ function updateUserSession() {
 }
 
 // Dashboard Page Controller
-function initDashboard() {
+async function initDashboard() {
   state.countries = JSON.parse(localStorage.getItem('nh_countries') || '[]');
+
+  // Try server profile balance sync so approved deposits reflect instantly
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      const res = await fetch('/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          state.user.balance = data.user.balance;
+          state.user.status = data.user.status;
+
+          const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
+          const idx = users.findIndex(u => u.id === data.user.id);
+          if (idx !== -1) {
+            users[idx].balance = data.user.balance;
+            users[idx].status = data.user.status;
+            localStorage.setItem('nh_users', JSON.stringify(users));
+          }
+          localStorage.setItem('nh_session', JSON.stringify({ user: state.user, token }));
+          updateHeaderUI();
+        }
+      }
+    }
+  } catch (err) {
+    console.log('Backend profile sync offline:', err);
+  }
+
   state.activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]').filter(n => n.userId === state.user.id);
   state.smsInbox = JSON.parse(localStorage.getItem('nh_sms') || '[]').filter(s => s.userId === state.user.id);
   state.transactions = JSON.parse(localStorage.getItem('nh_tx') || '[]').filter(t => t.userId === state.user.id);
@@ -1202,7 +1233,7 @@ function submitUTRDeposit(event) {
 }
 
 // Admin Operations & Client Surveillance Controller
-function initAdmin() {
+async function initAdmin() {
   state.pendingUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
   state.countries = JSON.parse(localStorage.getItem('nh_countries') || '[]');
   state.activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
@@ -1210,6 +1241,58 @@ function initAdmin() {
   const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
   state.monitoredClients = users.filter(u => u.role === 'customer');
   state.activityLogs = JSON.parse(localStorage.getItem('nh_logs') || '[]');
+
+  // Attempt backend API sync for Admin surveillance
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+
+    if (token) {
+      // Sync UTRs from server
+      const utrRes = await fetch('/api/admin/utrs', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (utrRes.ok) {
+        const utrData = await utrRes.json();
+        if (utrData.success && Array.isArray(utrData.utrs)) {
+          const localUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+          utrData.utrs.forEach(u => {
+            const idx = localUTRs.findIndex(existing => existing.id === u.id || existing.utr.toUpperCase() === u.utr.toUpperCase());
+            if (idx !== -1) {
+              localUTRs[idx] = u;
+            } else {
+              localUTRs.unshift(u);
+            }
+          });
+          localStorage.setItem('nh_utrs', JSON.stringify(localUTRs));
+          state.pendingUTRs = localUTRs;
+        }
+      }
+
+      // Sync monitored clients from server
+      const clientRes = await fetch('/api/admin/clients', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (clientRes.ok) {
+        const clientData = await clientRes.json();
+        if (clientData.success && Array.isArray(clientData.clients)) {
+          clientData.clients.forEach(sc => {
+            const idx = users.findIndex(u => u.id === sc.id);
+            if (idx !== -1) {
+              users[idx].balance = sc.balance;
+              users[idx].status = sc.status;
+            } else {
+              users.push({ ...sc, role: 'customer' });
+            }
+          });
+          localStorage.setItem('nh_users', JSON.stringify(users));
+          state.monitoredClients = users.filter(u => u.role === 'customer');
+        }
+      }
+    }
+  } catch (err) {
+    console.log('Backend sync offline, using local state:', err);
+  }
 
   renderAdminClientsTable();
   renderAdminActiveNumbersTable();

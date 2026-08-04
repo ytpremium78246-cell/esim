@@ -15,6 +15,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'numberhub_production_secret_key_9876';
 const USERS_FILE_PATH = path.join(__dirname, 'users.json');
+const UTRS_FILE_PATH = path.join(__dirname, 'utrs.json');
+const NUMBERS_FILE_PATH = path.join(__dirname, 'numbers.json');
+const TX_FILE_PATH = path.join(__dirname, 'transactions.json');
+const LOGS_FILE_PATH = path.join(__dirname, 'logs.json');
 
 // Middleware
 app.use(cors());
@@ -29,7 +33,7 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// In-Memory Database with optional JSON file sync
+// In-Memory Database with JSON file sync
 const db = {
   users: [
     { 
@@ -57,15 +61,14 @@ const db = {
   activeNumbers: [],
   smsMessages: [],
   transactions: [],
-  activityLogs: [] // Full admin monitoring log
+  activityLogs: []
 };
 
 // Persistence functions
-function loadUsersFromDisk() {
+function loadDataFromDisk() {
   try {
     if (fs.existsSync(USERS_FILE_PATH)) {
-      const data = fs.readFileSync(USERS_FILE_PATH, 'utf8');
-      const loaded = JSON.parse(data);
+      const loaded = JSON.parse(fs.readFileSync(USERS_FILE_PATH, 'utf8'));
       if (Array.isArray(loaded) && loaded.length > 0) {
         loaded.forEach(u => {
           if (!db.users.some(existing => existing.id === u.id || existing.email.toLowerCase() === u.email.toLowerCase())) {
@@ -74,20 +77,40 @@ function loadUsersFromDisk() {
         });
       }
     }
+    if (fs.existsSync(UTRS_FILE_PATH)) {
+      const loadedUTRs = JSON.parse(fs.readFileSync(UTRS_FILE_PATH, 'utf8'));
+      if (Array.isArray(loadedUTRs)) db.utrs = loadedUTRs;
+    }
+    if (fs.existsSync(NUMBERS_FILE_PATH)) {
+      const loadedNums = JSON.parse(fs.readFileSync(NUMBERS_FILE_PATH, 'utf8'));
+      if (Array.isArray(loadedNums)) db.activeNumbers = loadedNums;
+    }
+    if (fs.existsSync(TX_FILE_PATH)) {
+      const loadedTx = JSON.parse(fs.readFileSync(TX_FILE_PATH, 'utf8'));
+      if (Array.isArray(loadedTx)) db.transactions = loadedTx;
+    }
+    if (fs.existsSync(LOGS_FILE_PATH)) {
+      const loadedLogs = JSON.parse(fs.readFileSync(LOGS_FILE_PATH, 'utf8'));
+      if (Array.isArray(loadedLogs)) db.activityLogs = loadedLogs;
+    }
   } catch (err) {
-    console.error('Error loading users from disk:', err);
+    console.error('Error loading data from disk:', err);
   }
 }
 
-function saveUsersToDisk() {
+function saveDataToDisk() {
   try {
     fs.writeFileSync(USERS_FILE_PATH, JSON.stringify(db.users, null, 2), 'utf8');
+    fs.writeFileSync(UTRS_FILE_PATH, JSON.stringify(db.utrs, null, 2), 'utf8');
+    fs.writeFileSync(NUMBERS_FILE_PATH, JSON.stringify(db.activeNumbers, null, 2), 'utf8');
+    fs.writeFileSync(TX_FILE_PATH, JSON.stringify(db.transactions, null, 2), 'utf8');
+    fs.writeFileSync(LOGS_FILE_PATH, JSON.stringify(db.activityLogs, null, 2), 'utf8');
   } catch (err) {
-    console.error('Error saving users to disk:', err);
+    console.error('Error saving data to disk:', err);
   }
 }
 
-loadUsersFromDisk();
+loadDataFromDisk();
 
 // Activity Monitoring Logger
 function logClientActivity(userId, userName, action, details) {
@@ -101,6 +124,7 @@ function logClientActivity(userId, userName, action, details) {
     ip: '127.0.0.1'
   };
   db.activityLogs.unshift(logEntry);
+  saveDataToDisk();
   return logEntry;
 }
 
@@ -195,7 +219,7 @@ app.post('/api/auth/register', (req, res) => {
   };
 
   db.users.push(newClient);
-  saveUsersToDisk();
+  saveDataToDisk();
 
   // Log creation for admin monitoring
   logClientActivity(newClient.id, newClient.name, 'ACCOUNT_CREATED', `Registered new monitored client account (${newClient.email})`);
@@ -210,15 +234,26 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
+// Client User Profile / Balance Sync
+app.get('/api/user/profile', authenticateToken, (req, res) => {
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ success: false, error: 'User not found' });
+  res.json({
+    success: true,
+    user: { id: user.id, email: user.email, name: user.name, balance: user.balance, role: user.role, status: user.status }
+  });
+});
+
 // Client Wallet Deposit (Submit UTR)
 app.post('/api/wallet/deposit', authenticateToken, (req, res) => {
   const { utr, amount } = req.body;
 
-  if (!utr || !amount || amount < 1500) {
-    return res.status(400).json({ success: false, error: 'Valid 12-digit UTR and minimum ₹1,500 required.' });
+  if (!utr || !amount || amount < 500) {
+    return res.status(400).json({ success: false, error: 'Valid UTR reference and minimum ₹500 required.' });
   }
 
-  if (db.utrs.some(u => u.utr === utr)) {
+  const cleanUTR = String(utr).replace(/[\s-]/g, '').toUpperCase();
+  if (db.utrs.some(u => u.utr.toUpperCase() === cleanUTR)) {
     return res.status(400).json({ success: false, error: 'This UTR has already been submitted.' });
   }
 
@@ -227,16 +262,63 @@ app.post('/api/wallet/deposit', authenticateToken, (req, res) => {
     userId: req.user.id,
     userName: req.user.name,
     userEmail: req.user.email,
-    utr: utr.trim(),
+    utr: cleanUTR,
     amount: parseFloat(amount),
     status: 'pending',
     date: new Date().toISOString()
   };
 
   db.utrs.unshift(newUTR);
-  logClientActivity(req.user.id, req.user.name, 'UTR_DEPOSIT_SUBMITTED', `Submitted UTR ${utr} for ₹${amount}`);
+  logClientActivity(req.user.id, req.user.name, 'UTR_DEPOSIT_SUBMITTED', `Submitted UTR ${cleanUTR} for ₹${amount}`);
+  saveDataToDisk();
 
   res.status(201).json({ success: true, message: 'UTR deposit request submitted for admin verification.', data: newUTR });
+});
+
+// Admin: Get All Pending & Historical UTR Requests
+app.get('/api/admin/utrs', authenticateToken, requireAdmin, (req, res) => {
+  res.json({ success: true, utrs: db.utrs });
+});
+
+// Admin: Approve UTR
+app.post('/api/admin/utr/approve', authenticateToken, requireAdmin, (req, res) => {
+  const { utrId } = req.body;
+  const utrObj = db.utrs.find(u => u.id === utrId);
+
+  if (!utrObj) return res.status(404).json({ success: false, error: 'UTR record not found' });
+
+  utrObj.status = 'approved';
+
+  const user = db.users.find(u => u.id === utrObj.userId);
+  if (user) {
+    user.balance = (Number(user.balance) || 0) + Number(utrObj.amount);
+    db.transactions.unshift({
+      id: 'tx_' + Date.now(),
+      userId: user.id,
+      type: 'DEPOSIT',
+      description: `Wallet Top-Up Approved via UTR ${utrObj.utr}`,
+      amount: Number(utrObj.amount),
+      date: new Date().toISOString()
+    });
+    logClientActivity(user.id, user.name, 'UTR_APPROVED', `Admin approved deposit of ₹${utrObj.amount} via UTR ${utrObj.utr}`);
+  }
+
+  saveDataToDisk();
+  res.json({ success: true, message: `Approved deposit of ₹${utrObj.amount}` });
+});
+
+// Admin: Reject UTR
+app.post('/api/admin/utr/reject', authenticateToken, requireAdmin, (req, res) => {
+  const { utrId } = req.body;
+  const utrObj = db.utrs.find(u => u.id === utrId);
+
+  if (!utrObj) return res.status(404).json({ success: false, error: 'UTR record not found' });
+
+  utrObj.status = 'rejected';
+  logClientActivity(utrObj.userId, utrObj.userName, 'UTR_REJECTED', `Admin rejected UTR ${utrObj.utr}`);
+
+  saveDataToDisk();
+  res.json({ success: true, message: `Rejected UTR deposit ${utrObj.utr}` });
 });
 
 // Client Virtual Line Purchase
