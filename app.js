@@ -293,16 +293,15 @@ function initLocalStorage() {
   } else {
     // Purge test UTR 1111111111111111 transactions if present
     let currentTx = JSON.parse(localStorage.getItem('nh_tx') || '[]');
-    const hasTestTx = currentTx.some(t => t.description && t.description.includes('111111111111'));
-    if (hasTestTx) {
-      const removedAmt = currentTx.filter(t => t.description && t.description.includes('111111111111')).reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-      currentTx = currentTx.filter(t => !t.description || !t.description.includes('111111111111'));
-      localStorage.setItem('nh_tx', JSON.stringify(currentTx));
-
-      // Adjust Omkar balance accordingly
+    const filteredTx = currentTx.filter(t => {
+      if (!t || !t.description) return true;
+      return !t.description.includes('1111');
+    });
+    if (filteredTx.length !== currentTx.length) {
+      localStorage.setItem('nh_tx', JSON.stringify(filteredTx));
       const omkarUser = users.find(u => u.id === 'usr_omkar');
       if (omkarUser) {
-        omkarUser.balance = Math.max(0, (Number(omkarUser.balance) || 0) - removedAmt);
+        omkarUser.balance = 10.5;
         localStorage.setItem('nh_users', JSON.stringify(users));
       }
     }
@@ -310,9 +309,12 @@ function initLocalStorage() {
 
   // Purge test UTR reference from nh_utrs array if present
   let currentUtrs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-  if (currentUtrs.some(u => u.utr && u.utr.includes('111111111111'))) {
-    currentUtrs = currentUtrs.filter(u => !u.utr || !u.utr.includes('111111111111'));
-    localStorage.setItem('nh_utrs', JSON.stringify(currentUtrs));
+  const filteredUtrs = currentUtrs.filter(u => {
+    if (!u || !u.utr) return true;
+    return !u.utr.includes('1111');
+  });
+  if (filteredUtrs.length !== currentUtrs.length) {
+    localStorage.setItem('nh_utrs', JSON.stringify(filteredUtrs));
   }
   if (!localStorage.getItem('nh_logs')) localStorage.setItem('nh_logs', JSON.stringify([]));
 }
@@ -1003,11 +1005,52 @@ function renderTransactionsTable() {
         ${isCredit ? '+' : ''}₹${formattedAmount}
       </td>
       <td>
-        <span class="tier-badge" style="background: var(--accent-green-bg); color: var(--accent-green); border-color: var(--accent-green-border);">Completed</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%;">
+          <span class="tier-badge" style="background: var(--accent-green-bg); color: var(--accent-green); border-color: var(--accent-green-border);">Completed</span>
+          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteTransactionRecord('${t.id}')">🗑️ Delete</button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+function deleteTransactionRecord(txId) {
+  if (confirm('Are you sure you want to delete this transaction entry from your billing ledger?')) {
+    let txList = JSON.parse(localStorage.getItem('nh_tx') || '[]');
+    const targetTx = txList.find(t => t.id === txId);
+
+    txList = txList.filter(t => t.id !== txId);
+    localStorage.setItem('nh_tx', JSON.stringify(txList));
+
+    if (targetTx && targetTx.amount > 0) {
+      let users = JSON.parse(localStorage.getItem('nh_users') || '[]');
+      const uIdx = users.findIndex(u => u.id === targetTx.userId);
+      if (uIdx !== -1) {
+        users[uIdx].balance = Math.max(0, (Number(users[uIdx].balance) || 0) - Number(targetTx.amount));
+        localStorage.setItem('nh_users', JSON.stringify(users));
+
+        const sessionStr = localStorage.getItem('nh_session');
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          if (session && session.user && session.user.id === targetTx.userId) {
+            session.user.balance = users[uIdx].balance;
+            localStorage.setItem('nh_session', JSON.stringify(session));
+            if (state.user && state.user.id === targetTx.userId) {
+              state.user.balance = users[uIdx].balance;
+            }
+          }
+        }
+      }
+    }
+
+    showToast('Transaction record deleted.');
+    if (window.location.pathname.includes('transactions.html')) {
+      initTransactionsPage();
+    } else if (window.location.pathname.includes('dashboard.html')) {
+      initDashboard();
+    }
+  }
 }
 
 // Preset button handler for deposit modal
