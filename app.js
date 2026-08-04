@@ -1612,7 +1612,7 @@ function renderAdminPendingUTRs() {
       <td style="font-weight: 700; color: var(--accent-green);">₹${u.amount.toLocaleString()}</td>
       <td>${new Date(u.date).toLocaleTimeString()}</td>
       <td>
-        <button class="btn btn-primary btn-sm" onclick="approveUTR('${u.id}')">Approve</button>
+        <button class="btn btn-primary btn-sm" onclick="approveUTR('${u.id}')">Accept & Transfer</button>
         <button class="btn btn-secondary btn-sm" style="color: var(--status-danger);" onclick="rejectUTR('${u.id}')">Reject</button>
       </td>
     `;
@@ -1679,7 +1679,7 @@ function approveUTR(utrId) {
     }
   } catch (err) {}
 
-  showToast(`Approved ₹${utrObj.amount} deposit for ${utrObj.userName}!`);
+  showToast(`⚡ Money Transfer Executed! Credited ₹${Number(utrObj.amount).toLocaleString()} to ${utrObj.userName}'s wallet balance!`);
   initAdmin();
 }
 
