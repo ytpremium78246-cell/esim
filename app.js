@@ -1253,6 +1253,19 @@ function submitUTRDeposit(event) {
 
 // Admin Operations & Client Surveillance Controller
 async function initAdmin() {
+  // Session Guard: Enforce Admin Role
+  if (!state.user || state.user.role !== 'admin') {
+    const session = JSON.parse(localStorage.getItem('nh_session') || 'null');
+    if (session && session.user && session.user.role === 'admin') {
+      state.user = session.user;
+      state.token = session.token;
+    } else {
+      showToast('Admin authentication required to access surveillance portal.', 'error');
+      setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+      return;
+    }
+  }
+
   state.pendingUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
   state.countries = JSON.parse(localStorage.getItem('nh_countries') || '[]');
   state.activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
@@ -1267,28 +1280,19 @@ async function initAdmin() {
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
 
     if (token) {
-      // Sync UTRs from server
+      // Sync UTRs from server backend
       const utrRes = await fetch('/api/admin/utrs', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (utrRes.ok) {
         const utrData = await utrRes.json();
         if (utrData.success && Array.isArray(utrData.utrs)) {
-          const localUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-          utrData.utrs.forEach(u => {
-            const idx = localUTRs.findIndex(existing => existing.id === u.id || existing.utr.toUpperCase() === u.utr.toUpperCase());
-            if (idx !== -1) {
-              localUTRs[idx] = u;
-            } else {
-              localUTRs.unshift(u);
-            }
-          });
-          localStorage.setItem('nh_utrs', JSON.stringify(localUTRs));
-          state.pendingUTRs = localUTRs;
+          localStorage.setItem('nh_utrs', JSON.stringify(utrData.utrs));
+          state.pendingUTRs = utrData.utrs;
         }
       }
 
-      // Sync monitored clients from server
+      // Sync monitored clients from server backend
       const clientRes = await fetch('/api/admin/clients', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -1319,6 +1323,32 @@ async function initAdmin() {
   renderAdminPendingUTRs();
   renderAdminInventory();
   populateAdminOTPTargetDropdown();
+
+  // Start 4-second live background polling for real-time UTR requests
+  if (state.adminPollInterval) clearInterval(state.adminPollInterval);
+  state.adminPollInterval = setInterval(() => {
+    refreshAdminUTRs();
+  }, 4000);
+}
+
+async function refreshAdminUTRs() {
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      const utrRes = await fetch('/api/admin/utrs', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (utrRes.ok) {
+        const utrData = await utrRes.json();
+        if (utrData.success && Array.isArray(utrData.utrs)) {
+          localStorage.setItem('nh_utrs', JSON.stringify(utrData.utrs));
+          state.pendingUTRs = utrData.utrs;
+          renderAdminPendingUTRs();
+        }
+      }
+    }
+  } catch (err) {}
 }
 
 // Render Active Client Virtual Lines Table for Admin (Anuj)
