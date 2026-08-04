@@ -137,12 +137,11 @@ function initLocalStorage() {
     }
   }
 
-  // Active Numbers for Omkar including Colombia line (+57 321 7823318) purchased on May 15, 2026
+  // Active Numbers for Omkar matching full transaction purchase history (Colombia, South Africa, Canada)
   let activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
-  const hasColombia = activeNumbers.some(n => n.phone === '+57 321 7823318');
-
-  if (!hasColombia) {
-    activeNumbers.unshift({
+  
+  const defaultNumbers = [
+    {
       id: 'num_colombia_omkar',
       userId: 'usr_omkar',
       userName: 'Omkar',
@@ -155,8 +154,42 @@ function initLocalStorage() {
       lpaCode: 'LPA:1$esim.numberhub.store$COLOMBIA-PROFILE-3217823318',
       purchasedAt: '2026-05-15T11:30:00.000Z',
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    });
-  }
+    },
+    {
+      id: 'num_sa_omkar',
+      userId: 'usr_omkar',
+      userName: 'Omkar',
+      country: 'South Africa',
+      flag: '🇿🇦',
+      phone: '+27 11 982 4019',
+      price: 2380,
+      carrier: 'Vodacom South Africa',
+      iccid: '892711982401920251',
+      lpaCode: 'LPA:1$esim.numberhub.store$SA-PROFILE-119824019',
+      purchasedAt: '2025-09-29T14:15:00.000Z',
+      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'num_canada_omkar',
+      userId: 'usr_omkar',
+      userName: 'Omkar',
+      country: 'Canada',
+      flag: '🇨🇦',
+      phone: '+1 613 555 0192',
+      price: 5400,
+      carrier: 'Rogers Wireless 5G',
+      iccid: '890161355501920241',
+      lpaCode: 'LPA:1$esim.numberhub.store$CANADA-PROFILE-6135550192',
+      purchasedAt: '2024-02-12T10:30:00.000Z',
+      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ];
+
+  defaultNumbers.forEach(dn => {
+    if (!activeNumbers.some(n => n.phone === dn.phone)) {
+      activeNumbers.push(dn);
+    }
+  });
 
   activeNumbers.forEach(n => {
     n.userId = 'usr_omkar';
