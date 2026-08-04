@@ -305,6 +305,19 @@ app.post('/api/admin/clients/balance', authenticateToken, requireAdmin, (req, re
   res.json({ success: true, message: `Adjusted balance for ${client.name} to ₹${newBalance}` });
 });
 
+// Admin: Delete Virtual Line
+app.post('/api/admin/numbers/delete', authenticateToken, requireAdmin, (req, res) => {
+  const { numberId } = req.body;
+  const idx = db.activeNumbers.findIndex(n => n.id === numberId);
+
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Virtual line not found' });
+
+  const deletedNum = db.activeNumbers.splice(idx, 1)[0];
+  logClientActivity(req.user.id, req.user.name, 'ADMIN_DELETE_NUMBER', `Admin deleted virtual line ${deletedNum.phone} (${deletedNum.country}) allotted to ${deletedNum.userName}`);
+
+  res.json({ success: true, message: `Deleted virtual line ${deletedNum.phone}` });
+});
+
 // Admin: Activity Surveillance Logs
 app.get('/api/admin/logs', authenticateToken, requireAdmin, (req, res) => {
   res.json({ success: true, logs: db.activityLogs });

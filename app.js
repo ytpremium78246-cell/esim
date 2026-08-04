@@ -1123,10 +1123,32 @@ function renderAdminActiveNumbersTable() {
       <td>
         <button class="btn btn-secondary btn-sm" onclick="adminEditPhoneNumber('${n.id}')">✏️ Change Number</button>
         <button class="btn btn-outline-green btn-sm" onclick="adminQuickDispatchOTP('${n.phone}')">📩 Send OTP</button>
+        <button class="btn btn-secondary btn-sm" style="color: var(--status-danger);" onclick="adminDeletePhoneNumber('${n.id}')">🗑️ Delete Line</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+function adminDeletePhoneNumber(numberId) {
+  const activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
+  const numObj = activeNumbers.find(n => n.id === numberId);
+  if (!numObj) return;
+
+  if (confirm(`Admin: Are you sure you want to delete and revoke virtual line "${numObj.phone}" (${numObj.country}) allotted to client "${numObj.userName}"?`)) {
+    const updatedNumbers = activeNumbers.filter(n => n.id !== numberId);
+    localStorage.setItem('nh_active_numbers', JSON.stringify(updatedNumbers));
+
+    recordActivityLog(
+      state.user ? state.user.id : 'adm_1',
+      state.user ? state.user.name : 'Parmeet (Admin)',
+      'ADMIN_DELETE_NUMBER',
+      `Admin deleted virtual line ${numObj.phone} (${numObj.country}) allotted to ${numObj.userName}`
+    );
+
+    showToast(`Deleted and revoked virtual line ${numObj.phone} for ${numObj.userName}.`);
+    initAdmin();
+  }
 }
 
 function adminEditPhoneNumber(numberId) {
