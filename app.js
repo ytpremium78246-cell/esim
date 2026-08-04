@@ -1293,8 +1293,16 @@ async function initAdmin() {
       if (utrRes.ok) {
         const utrData = await utrRes.json();
         if (utrData.success && Array.isArray(utrData.utrs)) {
-          localStorage.setItem('nh_utrs', JSON.stringify(utrData.utrs));
-          state.pendingUTRs = utrData.utrs;
+          const localUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+          const mergedUTRs = [...utrData.utrs];
+          localUTRs.forEach(lu => {
+            if (!mergedUTRs.some(su => su.id === lu.id || su.utr === lu.utr)) {
+              mergedUTRs.push(lu);
+            }
+          });
+          localStorage.setItem('nh_utrs', JSON.stringify(mergedUTRs));
+          state.pendingUTRs = mergedUTRs;
+          renderAdminPendingUTRs();
         }
       }
 
