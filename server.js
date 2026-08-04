@@ -372,6 +372,31 @@ app.get('/api/sms/inbox', authenticateToken, (req, res) => {
   res.json({ success: true, sms: userSMS });
 });
 
+// Client Transactions History
+app.get('/api/user/transactions', authenticateToken, (req, res) => {
+  const userTx = db.transactions.filter(t => t.userId === req.user.id);
+  res.json({ success: true, transactions: userTx });
+});
+
+// Delete Client Transaction Record
+app.post('/api/user/transactions/delete', authenticateToken, (req, res) => {
+  const { txId } = req.body;
+  const idx = db.transactions.findIndex(t => t.id === txId && (t.userId === req.user.id || req.user.role === 'admin'));
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, error: 'Transaction record not found' });
+  }
+
+  const deletedTx = db.transactions.splice(idx, 1)[0];
+  saveDataToDisk();
+  res.json({ success: true, message: 'Transaction record deleted', deletedTx });
+});
+
+// Admin: Get All Transactions Across All Clients
+app.get('/api/admin/transactions', authenticateToken, requireAdmin, (req, res) => {
+  res.json({ success: true, transactions: db.transactions });
+});
+
 // Admin: Get All Monitored Clients
 app.get('/api/admin/clients', authenticateToken, requireAdmin, (req, res) => {
   const clients = db.users.filter(u => u.role === 'customer').map(c => {

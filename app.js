@@ -978,7 +978,7 @@ function filterTransactions(type) {
   renderTransactionsTable();
 }
 
-function initTransactionsPage() {
+async function initTransactionsPage() {
   if (!state.user) {
     const session = JSON.parse(localStorage.getItem('nh_session') || 'null');
     if (session && session.user) {
@@ -990,7 +990,33 @@ function initTransactionsPage() {
     }
   }
 
-  state.transactions = JSON.parse(localStorage.getItem('nh_tx') || '[]').filter(t => t.userId === state.user.id);
+  // Multi-User Isolated Transaction Fetch
+  let userTx = JSON.parse(localStorage.getItem('nh_tx') || '[]').filter(t => t.userId === state.user.id);
+
+  try {
+    const token = state.token || (JSON.parse(localStorage.getItem('nh_session') || '{}').token);
+    if (token) {
+      const res = await fetch('/api/user/transactions', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.transactions)) {
+          // Merge server transactions
+          data.transactions.forEach(stx => {
+            if (!userTx.some(ltx => ltx.id === stx.id)) {
+              userTx.unshift(stx);
+            }
+          });
+          localStorage.setItem('nh_tx', JSON.stringify(userTx));
+        }
+      }
+    }
+  } catch (err) {
+    console.log('Server transaction sync offline:', err);
+  }
+
+  state.transactions = userTx;
   updateHeaderUI();
 
   // Update summary stats cards
@@ -1006,7 +1032,7 @@ function initTransactionsPage() {
   let totalDeposits = 0;
   state.transactions.forEach(t => {
     if (t.amount < 0 || t.type === 'PURCHASE') totalPurchases += Math.abs(t.amount);
-    else if (t.amount > 0 || t.type === 'DEPOSIT') totalDeposits += Math.abs(t.amount);
+    else if (t.amount > 0 || t.type === 'DEPOSIT' || t.type === 'ADMIN_ADJUSTMENT') totalDeposits += Math.abs(t.amount);
   });
 
   if (purchasesEl) purchasesEl.textContent = `₹${totalPurchases.toLocaleString('en-IN', fmtOpt)}`;
@@ -1055,7 +1081,7 @@ function renderTransactionsTable() {
       <td>
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%;">
           <span class="tier-badge" style="background: var(--accent-green-bg); color: var(--accent-green); border-color: var(--accent-green-border);">Completed</span>
-          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteTransactionRecord('${t.id}')">🗑️ Delete</button>
+          <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem; color: var(--status-danger);" onclick="deleteTransactionRecord('${t.id}')">🗑️ Remove Record</button>
         </div>
       </td>
     `;
@@ -1064,35 +1090,28 @@ function renderTransactionsTable() {
 }
 
 function deleteTransactionRecord(txId) {
-  if (confirm('Are you sure you want to delete this transaction entry from your billing ledger?')) {
+  if (confirm('Remove this transaction entry from your billing ledger view?')) {
     let txList = JSON.parse(localStorage.getItem('nh_tx') || '[]');
-    const targetTx = txList.find(t => t.id === txId);
-
     txList = txList.filter(t => t.id !== txId);
     localStorage.setItem('nh_tx', JSON.stringify(txList));
+    state.transactions = state.transactions.filter(t => t.id !== txId);
 
-    if (targetTx && targetTx.amount > 0) {
-      let users = JSON.parse(localStorage.getItem('nh_users') || '[]');
-      const uIdx = users.findIndex(u => u.id === targetTx.userId);
-      if (uIdx !== -1) {
-        users[uIdx].balance = Math.max(0, (Number(users[uIdx].balance) || 0) - Number(targetTx.amount));
-        localStorage.setItem('nh_users', JSON.stringify(users));
-
-        const sessionStr = localStorage.getItem('nh_session');
-        if (sessionStr) {
-          const session = JSON.parse(sessionStr);
-          if (session && session.user && session.user.id === targetTx.userId) {
-            session.user.balance = users[uIdx].balance;
-            localStorage.setItem('nh_session', JSON.stringify(session));
-            if (state.user && state.user.id === targetTx.userId) {
-              state.user.balance = users[uIdx].balance;
-            }
-          }
-        }
+    // Sync deletion with backend API if token present
+    try {
+      const token = state.token || (JSON.parse(localStorage.getItem('nh_session') || '{}').token);
+      if (token) {
+        fetch('/api/user/transactions/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ txId })
+        }).catch(err => console.log('Backend tx deletion sync notice:', err));
       }
-    }
+    } catch (err) {}
 
-    showToast('Transaction record deleted.');
+    showToast('Transaction record removed from ledger display.');
     if (window.location.pathname.includes('transactions.html')) {
       initTransactionsPage();
     } else if (window.location.pathname.includes('dashboard.html')) {
