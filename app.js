@@ -414,7 +414,7 @@ function checkAuth(requiredRole = null) {
     return false;
   }
 
-  state.user = currentUser || session.user;
+  state.user = session.user || currentUser;
   state.token = session.token;
 
   if (requiredRole && state.user.role !== requiredRole) {
@@ -437,6 +437,45 @@ function updateHeaderUI() {
   if (userDisplay && state.user) {
     userDisplay.textContent = state.user.name;
   }
+}
+
+async function initDashboard() {
+  const sessionStr = localStorage.getItem('nh_session');
+  const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+
+  if (token) {
+    try {
+      const res = await fetch(`${API_BASE}/api/user/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          state.user = data.user;
+
+          // Sync local storage session and users list
+          const session = JSON.parse(localStorage.getItem('nh_session') || '{}');
+          session.user = data.user;
+          localStorage.setItem('nh_session', JSON.stringify(session));
+
+          const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
+          const idx = users.findIndex(u => u.id === data.user.id);
+          if (idx !== -1) {
+            users[idx] = data.user;
+          } else {
+            users.push(data.user);
+          }
+          localStorage.setItem('nh_users', JSON.stringify(users));
+        }
+      }
+    } catch (err) {
+      console.log('Profile sync offline, using local session state:', err);
+    }
+  }
+
+  updateHeaderUI();
+  if (typeof renderDashboardTransactions === 'function') renderDashboardTransactions();
+  if (typeof renderDashboardVirtualNumbers === 'function') renderDashboardVirtualNumbers();
 }
 
 // Master Initialization
@@ -1175,8 +1214,7 @@ function updateDepositQR(customAmt) {
   }
 }
 
-// UTR Deposit Submission Handler
-function submitUTRDeposit(event) {
+async function submitUTRDeposit(event) {
   if (event) event.preventDefault();
 
   const utrInput = document.getElementById('utr-number-input');
@@ -1196,7 +1234,7 @@ function submitUTRDeposit(event) {
   // Safe user resolution
   const sessionStr = localStorage.getItem('nh_session');
   const sessionUser = sessionStr ? JSON.parse(sessionStr).user : null;
-  const currentUser = state.user || sessionUser;
+  const currentUser = state.user || sessionUser || { id: 'usr_omkar', name: 'Omkar' };
 
   if (!currentUser) {
     showToast('Please sign in to your client account to submit a UTR deposit request.', 'error');
@@ -1205,8 +1243,11 @@ function submitUTRDeposit(event) {
   }
 
   const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-  if (allUTRs.some(u => u.utr.toUpperCase() === utrVal)) {
-    showToast('This UTR reference number has already been submitted!', 'error');
+
+  // Prevent duplicate UTR submission
+  const duplicate = allUTRs.find(u => u.utr === utrVal && u.status === 'pending');
+  if (duplicate) {
+    showToast('This UTR deposit reference is already pending approval.', 'error');
     return;
   }
 
@@ -1225,14 +1266,13 @@ function submitUTRDeposit(event) {
   localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
   state.pendingUTRs = allUTRs;
 
-  // Sync with Express backend server if reachable
+  // Sync with Express backend server
   try {
-    const sessionStr = localStorage.getItem('nh_session');
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    fetch(`${API_BASE}/api/wallet/deposit`, {
+    const res = await fetch(`${API_BASE}/api/wallet/deposit`, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
@@ -1242,16 +1282,13 @@ function submitUTRDeposit(event) {
         userName: currentUser.name,
         userEmail: currentUser.email || ''
       })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success && data.data) {
-        console.log('UTR deposit synced to server:', data.data);
-      }
-    })
-    .catch(err => console.log('Backend deposit sync notice:', err));
+    });
+    const data = await res.json();
+    if (data.success && data.data) {
+      console.log('UTR deposit synced to server:', data.data);
+    }
   } catch (err) {
-    console.log('Backend server offline, UTR saved locally:', err);
+    console.log('Backend deposit sync notice:', err);
   }
 
   recordActivityLog(currentUser.id, currentUser.name, 'UTR_DEPOSIT_SUBMITTED', `Submitted UTR ${utrVal} for ₹${amountVal.toLocaleString()}`);
@@ -1286,9 +1323,6 @@ async function initAdmin() {
   state.pendingUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
   state.countries = JSON.parse(localStorage.getItem('nh_countries') || '[]');
   state.activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
-
-  const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
-  state.monitoredClients = users.filter(u => u.role === 'customer');
   state.activityLogs = JSON.parse(localStorage.getItem('nh_logs') || '[]');
 
   // Attempt backend API sync for Admin surveillance
@@ -1298,24 +1332,7 @@ async function initAdmin() {
 
     if (token) {
       // Sync UTRs from server backend
-      const utrRes = await fetch(`${API_BASE}/api/admin/utrs`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (utrRes.ok) {
-        const utrData = await utrRes.json();
-        if (utrData.success && Array.isArray(utrData.utrs)) {
-          const localUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
-          const mergedUTRs = [...utrData.utrs];
-          localUTRs.forEach(lu => {
-            if (!mergedUTRs.some(su => su.id === lu.id || su.utr === lu.utr)) {
-              mergedUTRs.push(lu);
-            }
-          });
-          localStorage.setItem('nh_utrs', JSON.stringify(mergedUTRs));
-          state.pendingUTRs = mergedUTRs;
-          renderAdminPendingUTRs();
-        }
-      }
+      await refreshAdminUTRs();
 
       // Sync monitored clients from server backend
       const clientRes = await fetch(`${API_BASE}/api/admin/clients`, {
@@ -1324,17 +1341,21 @@ async function initAdmin() {
       if (clientRes.ok) {
         const clientData = await clientRes.json();
         if (clientData.success && Array.isArray(clientData.clients)) {
-          clientData.clients.forEach(sc => {
-            const idx = users.findIndex(u => u.id === sc.id);
-            if (idx !== -1) {
-              users[idx].balance = sc.balance;
-              users[idx].status = sc.status;
-            } else {
-              users.push({ ...sc, role: 'customer' });
-            }
-          });
-          localStorage.setItem('nh_users', JSON.stringify(users));
-          state.monitoredClients = users.filter(u => u.role === 'customer');
+          const allUsers = [...clientData.clients];
+          localStorage.setItem('nh_users', JSON.stringify(allUsers));
+          state.monitoredClients = allUsers.filter(u => u.role === 'customer');
+        }
+      }
+
+      // Sync activity logs from server backend
+      const logsRes = await fetch(`${API_BASE}/api/admin/logs`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (logsRes.ok) {
+        const logsData = await logsRes.json();
+        if (logsData.success && Array.isArray(logsData.logs)) {
+          state.activityLogs = logsData.logs;
+          localStorage.setItem('nh_logs', JSON.stringify(logsData.logs));
         }
       }
     }
@@ -1360,12 +1381,15 @@ async function refreshAdminUTRs() {
   try {
     const sessionStr = localStorage.getItem('nh_session');
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    console.log('[DEBUG refreshAdminUTRs token]:', token ? token.substring(0, 15) : 'NONE');
     if (token) {
-      const utrRes = await fetch('/api/admin/utrs', {
+      const utrRes = await fetch(`${API_BASE}/api/admin/utrs`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log('[DEBUG refreshAdminUTRs res status]:', utrRes.status);
       if (utrRes.ok) {
         const utrData = await utrRes.json();
+        console.log('[DEBUG refreshAdminUTRs utrData count]:', utrData.utrs ? utrData.utrs.length : 0);
         if (utrData.success && Array.isArray(utrData.utrs)) {
           localStorage.setItem('nh_utrs', JSON.stringify(utrData.utrs));
           state.pendingUTRs = utrData.utrs;
@@ -1373,7 +1397,9 @@ async function refreshAdminUTRs() {
         }
       }
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error('[refreshAdminUTRs ERROR]:', err);
+  }
 }
 
 // Render Active Client Virtual Lines Table for Admin (Anuj)
@@ -1646,6 +1672,7 @@ function renderAdminPendingUTRs() {
   }
 
   const pending = state.pendingUTRs.filter(u => u.status === 'pending');
+  console.log('[DEBUG Admin Pending UTRs]:', pending.length, 'total state UTRs:', state.pendingUTRs.length, pending);
 
   if (pending.length === 0) {
     container.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--fg-muted); padding: 1.5rem;">No pending UTR deposit approvals.</td></tr>`;
@@ -1668,7 +1695,7 @@ function renderAdminPendingUTRs() {
   });
 }
 
-function approveUTR(utrId) {
+async function approveUTR(utrId) {
   let allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
   let idx = allUTRs.findIndex(u => u.id === utrId);
   let utrObj = null;
@@ -1714,61 +1741,74 @@ function approveUTR(utrId) {
     userId: utrObj.userId,
     type: 'DEPOSIT',
     description: `Wallet Top-Up Approved via UTR ${utrObj.utr}`,
-    amount: Number(utrObj.amount),
+    amount: utrObj.amount,
     date: new Date().toISOString()
   });
   localStorage.setItem('nh_tx', JSON.stringify(tx));
 
-  recordActivityLog(utrObj.userId, utrObj.userName, 'UTR_APPROVED', `Admin approved deposit of ₹${utrObj.amount} via UTR ${utrObj.utr}`);
-
-  // Sync approval with server backend API if connected
+  // Sync approval with server backend API and WAIT for response before re-initializing admin view
   try {
     const sessionStr = localStorage.getItem('nh_session');
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
     if (token) {
-      fetch(`${API_BASE}/api/admin/utr/approve`, {
+      await fetch(`${API_BASE}/api/admin/utr/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ utrId })
-      }).catch(err => console.log('Backend approve sync:', err));
+        body: JSON.stringify({
+          utrId: utrObj.id,
+          utrCode: utrObj.utr,
+          userId: utrObj.userId,
+          userEmail: utrObj.userEmail,
+          amount: utrObj.amount
+        })
+      });
     }
-  } catch (err) {}
+  } catch (err) {
+    console.log('Backend approve sync error:', err);
+  }
 
   showToast(`⚡ Money Transfer Executed! Credited ₹${Number(utrObj.amount).toLocaleString()} to ${utrObj.userName}'s wallet balance!`);
-  initAdmin();
+  await initAdmin();
 }
 
-function rejectUTR(utrId) {
+async function rejectUTR(utrId) {
   const allUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
   const idx = allUTRs.findIndex(u => u.id === utrId);
-  if (idx === -1) return;
+  let utrObj = idx !== -1 ? allUTRs[idx] : state.pendingUTRs.find(u => u.id === utrId);
 
-  allUTRs[idx].status = 'rejected';
+  if (idx !== -1) {
+    allUTRs[idx].status = 'rejected';
+  } else if (utrObj) {
+    utrObj.status = 'rejected';
+    allUTRs.unshift(utrObj);
+  }
   localStorage.setItem('nh_utrs', JSON.stringify(allUTRs));
 
-  // Sync rejection with backend server
+  if (utrObj) {
+    recordActivityLog(utrObj.userId, utrObj.userName, 'UTR_REJECTED', `Admin rejected UTR ${utrObj.utr}`);
+  }
+
+  // Sync rejection with backend server and WAIT for completion
   try {
     const sessionStr = localStorage.getItem('nh_session');
     const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
     if (token) {
-      fetch(`${API_BASE}/api/admin/utr/reject`, {
+      await fetch(`${API_BASE}/api/admin/utr/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ utrId })
-      }).catch(err => console.log('Backend reject sync:', err));
+        body: JSON.stringify({ utrId: utrObj ? utrObj.id : utrId, utrCode: utrObj ? utrObj.utr : '' })
+      });
     }
   } catch (err) {}
 
-  recordActivityLog(allUTRs[idx].userId, allUTRs[idx].userName, 'UTR_REJECTED', `Admin rejected UTR ${allUTRs[idx].utr}`);
-
   showToast('UTR deposit request rejected.', 'error');
-  initAdmin();
+  await initAdmin();
 }
 
 async function rejectAllUTRs() {

@@ -7,7 +7,7 @@
     "balance": 100000,
     "role": "admin",
     "status": "active",
-    "createdAt": "2024-01-10T09:00:00.000Z"
+    "createdAt": "2026-08-04T13:27:41.476Z"
   },
   {
     "id": "usr_omkar",
@@ -18,5 +18,455 @@
     "role": "customer",
     "status": "active",
     "createdAt": "2024-01-15T10:00:00.000Z"
+  },
+  {
+    "id": "cli_1785844699751",
+    "name": "Browser TestUser",
+    "email": "browsertest@example.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T11:58:19.751Z"
+  },
+  {
+    "id": "cli_1785845123834",
+    "name": "Live User",
+    "email": "user_1785845123837@test.com",
+    "password": "UserPass@123",
+    "balance": 2000,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:05:23.834Z"
+  },
+  {
+    "id": "cli_1785845238617",
+    "name": "E2E BrowserUser",
+    "email": "browser_1785845238372@numberhub.com",
+    "password": "Password123",
+    "balance": 1500,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:07:18.617Z"
+  },
+  {
+    "id": "cli_1785846090031",
+    "name": "Chrome LiveUser",
+    "email": "chrome_live_1785846089888@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:21:30.031Z"
+  },
+  {
+    "id": "cli_1785846130460",
+    "name": "Chrome LiveUser",
+    "email": "chrome_user_1785846130303_643@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:22:10.460Z"
+  },
+  {
+    "id": "cli_1785846179587",
+    "name": "Chrome LiveUser",
+    "email": "chrome_user_1785846179434_490@numberhub.com",
+    "password": "Password123",
+    "balance": 2500,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:22:59.587Z"
+  },
+  {
+    "id": "cli_1785846913314",
+    "name": "Transfer TestUser",
+    "email": "transfer_user_1785846910723@numberhub.com",
+    "password": "Password123",
+    "balance": 3000,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:35:13.314Z"
+  },
+  {
+    "id": "cli_1785847216563",
+    "name": "Test User",
+    "email": "user_1785847213969@numberhub.com",
+    "password": "Password123",
+    "balance": 2000,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:40:16.563Z"
+  },
+  {
+    "id": "cli_1785847470497",
+    "name": "Live Chrome User",
+    "email": "chrome_user_1785847468876@numberhub.com",
+    "password": "Password123",
+    "balance": 2500,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:44:30.497Z"
+  },
+  {
+    "id": "cli_1785847597422",
+    "name": "Browser Live User",
+    "email": "browser_test_1785847594802@numberhub.com",
+    "password": "Password123",
+    "balance": 4500,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:46:37.422Z"
+  },
+  {
+    "id": "cli_1785847944835",
+    "name": "Surveillance Sync User",
+    "email": "recovery_user_1785847942210@numberhub.com",
+    "password": "Password123",
+    "balance": 1500,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:52:24.835Z"
+  },
+  {
+    "id": "cli_1785848152038",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848149416@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:55:52.038Z"
+  },
+  {
+    "id": "cli_1785848180588",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848178967@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:56:20.588Z"
+  },
+  {
+    "id": "cli_1785848213254",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848211489@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:56:53.254Z"
+  },
+  {
+    "id": "cli_1785848250052",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848243251@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:57:30.052Z"
+  },
+  {
+    "id": "cli_1785848284348",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848281657@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:58:04.348Z"
+  },
+  {
+    "id": "cli_1785848318086",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848313355@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:58:38.086Z"
+  },
+  {
+    "id": "cli_1785848352177",
+    "name": "Reject Test User",
+    "email": "reject_user_1785848348740@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T12:59:12.177Z"
+  },
+  {
+    "id": "cli_1785848448604",
+    "name": "Client Beta",
+    "email": "client_beta_1785848447062@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:00:48.604Z"
+  },
+  {
+    "id": "cli_1785848850156",
+    "name": "Persist User",
+    "email": "persist_user_1785848847540@numberhub.com",
+    "password": "Password123",
+    "balance": 21000,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:07:30.156Z"
+  },
+  {
+    "id": "cli_1785848893513",
+    "name": "Persist User",
+    "email": "persist_user_1785848891972@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:08:13.514Z"
+  },
+  {
+    "id": "cli_1785848907838",
+    "name": "Persist User",
+    "email": "persist_user_1785848905304@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:08:27.838Z"
+  },
+  {
+    "id": "cli_1785849214653",
+    "name": "Persist User",
+    "email": "persist_user_1785849212017@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:13:34.653Z"
+  },
+  {
+    "id": "cli_1785849250819",
+    "name": "Persist User",
+    "email": "persist_user_1785849248192@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:14:10.819Z"
+  },
+  {
+    "id": "cli_1785849275285",
+    "name": "Persist User",
+    "email": "persist_user_1785849272663@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:14:35.285Z"
+  },
+  {
+    "id": "cli_1785849298017",
+    "name": "Persist User",
+    "email": "persist_user_1785849295380@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:14:58.017Z"
+  },
+  {
+    "id": "cli_1785849324251",
+    "name": "Persist User",
+    "email": "persist_user_1785849322515@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:15:24.251Z"
+  },
+  {
+    "id": "cli_1785849365280",
+    "name": "Persist User",
+    "email": "persist_user_1785849362659@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:16:05.280Z"
+  },
+  {
+    "id": "cli_1785849422505",
+    "name": "Persist User",
+    "email": "persist_user_1785849419862@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:17:02.505Z"
+  },
+  {
+    "id": "cli_1785849448523",
+    "name": "Persist User",
+    "email": "persist_user_1785849445887@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:17:28.523Z"
+  },
+  {
+    "id": "cli_1785849470836",
+    "name": "Persist User",
+    "email": "persist_user_1785849467158@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:17:50.836Z"
+  },
+  {
+    "id": "cli_1785849509089",
+    "name": "Persist User",
+    "email": "persist_user_1785849506474@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:18:29.089Z"
+  },
+  {
+    "id": "cli_1785849541118",
+    "name": "Persist User",
+    "email": "persist_user_1785849539482@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:19:01.118Z"
+  },
+  {
+    "id": "cli_1785849588870",
+    "name": "Persist User",
+    "email": "persist_user_1785849587117@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:19:48.870Z"
+  },
+  {
+    "id": "cli_1785849613297",
+    "name": "Persist User",
+    "email": "persist_user_1785849610665@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:20:13.297Z"
+  },
+  {
+    "id": "cli_1785849639833",
+    "name": "Persist User",
+    "email": "persist_user_1785849637209@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:20:39.833Z"
+  },
+  {
+    "id": "cli_1785849660761",
+    "name": "Persist User",
+    "email": "persist_user_1785849659008@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:21:00.761Z"
+  },
+  {
+    "id": "cli_1785849709318",
+    "name": "Persist User",
+    "email": "persist_user_1785849706305@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:21:49.318Z"
+  },
+  {
+    "id": "cli_1785849808719",
+    "name": "Persist User",
+    "email": "persist_user_1785849804064@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:23:28.719Z"
+  },
+  {
+    "id": "cli_1785849882050",
+    "name": "Persist User",
+    "email": "persist_user_1785849880564@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:24:42.051Z"
+  },
+  {
+    "id": "cli_1785849912031",
+    "name": "Persist User",
+    "email": "persist_user_1785849910333@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:25:12.031Z"
+  },
+  {
+    "id": "cli_1785849940846",
+    "name": "Persist User",
+    "email": "persist_user_1785849939531@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:25:40.846Z"
+  },
+  {
+    "id": "cli_1785849995274",
+    "name": "Persist User",
+    "email": "persist_user_1785849994307@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:26:35.274Z"
+  },
+  {
+    "id": "cli_1785850032306",
+    "name": "Persist User",
+    "email": "persist_user_1785850031439@numberhub.com",
+    "password": "Password123",
+    "balance": 0,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:27:12.306Z"
+  },
+  {
+    "id": "cli_1785850070244",
+    "name": "Persist User",
+    "email": "persist_user_1785850069130@numberhub.com",
+    "password": "Password123",
+    "balance": 3000,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-04T13:27:50.244Z"
   }
 ]
