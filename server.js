@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname)));
 // Rate Limiter middleware
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50000,
+  max: 200,
   message: { success: false, error: 'Too many requests from this IP, please try again later.' }
 });
 app.use('/api/', apiLimiter);
@@ -147,8 +147,8 @@ function authenticateToken(req, res, next) {
 
     // Support dev/fallback session tokens matching db.users
     if (token && (token.startsWith('nh_tok_') || token.length > 5)) {
-      const adminUser = db.users.find(u => u.role === 'admin') || db.users[0];
-      req.user = adminUser;
+      const fallbackUser = db.users.find(u => u.role === 'customer') || db.users[0];
+      req.user = fallbackUser;
       return next();
     }
 
@@ -252,28 +252,8 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
   });
 });
 
-// Optional Auth Token Verification Middleware (Graceful Fallback for Deposits)
-function optionalAuthToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (token) {
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-      if (!err && user) {
-        req.user = db.users.find(u => u.id === user.id) || user;
-      } else {
-        req.user = db.users.find(u => u.role === 'customer') || db.users[0];
-      }
-      return next();
-    });
-  } else {
-    req.user = db.users.find(u => u.role === 'customer') || db.users[0];
-    return next();
-  }
-}
-
 // Client Wallet Deposit (Submit UTR)
-app.post('/api/wallet/deposit', optionalAuthToken, (req, res) => {
+app.post('/api/wallet/deposit', authenticateToken, (req, res) => {
   const { utr, amount, userId, userName, userEmail } = req.body;
 
   if (!utr || !amount || amount < 500) {
@@ -314,98 +294,43 @@ app.get('/api/admin/utrs', authenticateToken, requireAdmin, (req, res) => {
 
 // Admin: Approve UTR
 app.post('/api/admin/utr/approve', authenticateToken, requireAdmin, (req, res) => {
-  const { utrId, utrCode, userId, userEmail, amount } = req.body;
+  const { utrId } = req.body;
+  const utrObj = db.utrs.find(u => u.id === utrId);
 
-  let utrObj = db.utrs.find(u => u.id === utrId || (utrCode && u.utr && u.utr.toUpperCase() === String(utrCode).toUpperCase()));
+  if (!utrObj) return res.status(404).json({ success: false, error: 'UTR record not found' });
 
-  if (!utrObj && (utrCode || utrId)) {
-    utrObj = {
-      id: utrId || 'utr_' + Date.now(),
-      userId: userId || 'usr_omkar',
-      userName: 'Customer',
-      userEmail: userEmail || '',
-      utr: utrCode || 'UTR_' + Date.now(),
-      amount: Number(amount) || 0,
-      status: 'approved',
-      date: new Date().toISOString()
-    };
-    db.utrs.unshift(utrObj);
-  } else if (utrObj) {
-    utrObj.status = 'approved';
-  } else {
-    return res.status(404).json({ success: false, error: 'UTR record not found' });
-  }
+  utrObj.status = 'approved';
 
-  const targetUserId = utrObj.userId || userId;
-  const targetEmail = utrObj.userEmail || userEmail;
-  const targetAmount = Number(utrObj.amount) || Number(amount) || 0;
-
-  const user = db.users.find(u => 
-    (targetUserId && u.id === targetUserId) || 
-    (targetEmail && u.email && u.email.toLowerCase() === targetEmail.toLowerCase())
-  ) || (utrObj && utrObj.userName ? db.users.find(u => u.name.toLowerCase() === utrObj.userName.toLowerCase()) : null) || db.users.find(u => u.role === 'customer');
-
+  const user = db.users.find(u => u.id === utrObj.userId);
   if (user) {
-    user.balance = (Number(user.balance) || 0) + targetAmount;
+    user.balance = (Number(user.balance) || 0) + Number(utrObj.amount);
     db.transactions.unshift({
       id: 'tx_' + Date.now(),
       userId: user.id,
       type: 'DEPOSIT',
       description: `Wallet Top-Up Approved via UTR ${utrObj.utr}`,
-      amount: targetAmount,
+      amount: Number(utrObj.amount),
       date: new Date().toISOString()
     });
-    logClientActivity(user.id, user.name, 'UTR_APPROVED', `Admin approved deposit of ₹${targetAmount} via UTR ${utrObj.utr}`);
+    logClientActivity(user.id, user.name, 'UTR_APPROVED', `Admin approved deposit of ₹${utrObj.amount} via UTR ${utrObj.utr}`);
   }
 
   saveDataToDisk();
-  res.json({ 
-    success: true, 
-    message: `Approved deposit of ₹${targetAmount}`, 
-    userBalance: user ? user.balance : 0,
-    userId: user ? user.id : null,
-    utr: utrObj
-  });
+  res.json({ success: true, message: `Approved deposit of ₹${utrObj.amount}` });
 });
 
 // Admin: Reject UTR
 app.post('/api/admin/utr/reject', authenticateToken, requireAdmin, (req, res) => {
-  const { utrId, utrCode } = req.body;
-  let utrObj = db.utrs.find(u => u.id === utrId || (utrCode && u.utr && u.utr.toUpperCase() === String(utrCode).toUpperCase()));
+  const { utrId } = req.body;
+  const utrObj = db.utrs.find(u => u.id === utrId);
 
-  if (!utrObj && (utrCode || utrId)) {
-    utrObj = {
-      id: utrId || 'utr_' + Date.now(),
-      userId: 'usr_omkar',
-      userName: 'Customer',
-      userEmail: '',
-      utr: utrCode || 'UTR_' + Date.now(),
-      amount: 0,
-      status: 'rejected',
-      date: new Date().toISOString()
-    };
-    db.utrs.unshift(utrObj);
-  } else if (utrObj) {
-    utrObj.status = 'rejected';
-    logClientActivity(utrObj.userId, utrObj.userName, 'UTR_REJECTED', `Admin rejected UTR ${utrObj.utr}`);
-  }
+  if (!utrObj) return res.status(404).json({ success: false, error: 'UTR record not found' });
+
+  utrObj.status = 'rejected';
+  logClientActivity(utrObj.userId, utrObj.userName, 'UTR_REJECTED', `Admin rejected UTR ${utrObj.utr}`);
 
   saveDataToDisk();
-  res.json({ success: true, message: `Rejected UTR deposit ${utrObj ? utrObj.utr : utrId}` });
-});
-
-// Admin: Reject All Pending UTRs
-app.post('/api/admin/utr/reject-all', authenticateToken, requireAdmin, (req, res) => {
-  let count = 0;
-  db.utrs.forEach(u => {
-    if (u.status === 'pending') {
-      u.status = 'rejected';
-      count++;
-      logClientActivity(u.userId, u.userName, 'UTR_REJECTED', `Admin rejected UTR ${u.utr}`);
-    }
-  });
-  saveDataToDisk();
-  res.json({ success: true, message: `Rejected all ${count} pending UTR deposit requests.` });
+  res.json({ success: true, message: `Rejected UTR deposit ${utrObj.utr}` });
 });
 
 // Client Virtual Line Purchase
