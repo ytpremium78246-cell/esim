@@ -62,7 +62,9 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Client Name & Email</th>
+                  <th>Client Name</th>
+                  <th>Email Address</th>
+                  <th>Password (Surveillance)</th>
                   <th>Wallet Balance</th>
                   <th>Lines Bought</th>
                   <th>Status</th>
@@ -187,6 +189,45 @@
 
           <div id="admin-activity-logs" style="max-height: 340px; overflow-y: auto;">
             <!-- Rendered via app.js -->
+          </div>
+        </div>
+
+        <!-- One-Click Database Backup & Migration Console -->
+        <div class="panel-box" style="margin-bottom: 2.5rem; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-color);">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>💾 One-Click Database Backup & Migration Manager</span>
+            </div>
+            <span style="font-size: 0.8rem; color: var(--fg-muted);">Export or Restore All Users, Transactions, Virtual Lines & Logs</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; padding: 0.5rem 0;">
+            <!-- Export Card -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px;">
+              <h4 style="margin-top: 0; color: var(--accent-green); display: flex; align-items: center; gap: 0.5rem;">
+                <span>📥</span> Export Full Backup JSON
+              </h4>
+              <p style="font-size: 0.85rem; color: var(--fg-muted); margin-bottom: 1rem;">
+                Download a complete 1-click backup of all registered users, balances, transactions, active lines, and logs. Save this before deploying new code to Render.
+              </p>
+              <button class="btn btn-primary" onclick="adminExportDatabase()" style="width: 100%;">
+                📥 Export Database Backup (JSON)
+              </button>
+            </div>
+
+            <!-- Import Card -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 8px;">
+              <h4 style="margin-top: 0; color: var(--accent-green); display: flex; align-items: center; gap: 0.5rem;">
+                <span>📤</span> Restore Database Backup JSON
+              </h4>
+              <p style="font-size: 0.85rem; color: var(--fg-muted); margin-bottom: 1rem;">
+                Select a previously downloaded backup JSON file to restore all users, transactions, lines, and balances after a code update or server redeploy.
+              </p>
+              <input type="file" id="db-restore-file" accept=".json" style="display: none;" onchange="adminImportDatabase(event)">
+              <button class="btn btn-secondary" onclick="document.getElementById('db-restore-file').click()" style="width: 100%;">
+                📤 Select Backup File & Restore Data
+              </button>
+            </div>
           </div>
         </div>
 

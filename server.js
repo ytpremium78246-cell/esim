@@ -71,8 +71,11 @@ function loadDataFromDisk() {
       const loaded = JSON.parse(fs.readFileSync(USERS_FILE_PATH, 'utf8'));
       if (Array.isArray(loaded) && loaded.length > 0) {
         loaded.forEach(u => {
-          if (!db.users.some(existing => existing.id === u.id || existing.email.toLowerCase() === u.email.toLowerCase())) {
+          const idx = db.users.findIndex(existing => existing.id === u.id || (existing.email && u.email && existing.email.toLowerCase() === u.email.toLowerCase()));
+          if (idx === -1) {
             db.users.push(u);
+          } else {
+            db.users[idx] = { ...db.users[idx], ...u };
           }
         });
       }
@@ -418,6 +421,7 @@ app.get('/api/admin/clients', authenticateToken, requireAdmin, (req, res) => {
       id: c.id,
       name: c.name,
       email: c.email,
+      password: c.password || 'N/A',
       balance: c.balance,
       status: c.status,
       createdAt: c.createdAt,
@@ -527,8 +531,10 @@ app.post('/api/admin/sms/send', authenticateToken, requireAdmin, (req, res) => {
     country: targetNum.country,
     sender: serviceName || 'Telegram',
     code: otpCode,
+    otp: otpCode,
     message: `Your ${serviceName || 'Telegram'} verification code is: ${otpCode}. Do not share this code with anyone.`,
-    receivedAt: new Date().toISOString()
+    receivedAt: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
 
   db.smsMessages.unshift(smsObj);
@@ -562,6 +568,108 @@ app.post('/api/admin/countries/stock', authenticateToken, requireAdmin, (req, re
   logClientActivity(req.user.id, req.user.name, 'ADMIN_TOGGLE_STOCK', `Toggled stock for ${countryId} to ${inStock ? 'IN_STOCK' : 'OUT_OF_STOCK'}`);
   saveDataToDisk();
   res.json({ success: true, message: `Updated stock availability for ${countryId}` });
+});
+
+// Admin: Export Complete Database Backup JSON
+app.get('/api/admin/export-database', authenticateToken, requireAdmin, (req, res) => {
+  logClientActivity(req.user.id, req.user.name, 'ADMIN_EXPORT_DB', 'Exported full database backup');
+  saveDataToDisk();
+
+  const backupPayload = {
+    version: '2.0.0',
+    exportedAt: new Date().toISOString(),
+    stats: {
+      userCount: db.users.length,
+      numberCount: db.activeNumbers.length,
+      transactionCount: db.transactions.length,
+      utrCount: db.utrs.length,
+      smsCount: db.smsMessages.length,
+      logCount: db.activityLogs.length
+    },
+    data: {
+      users: db.users,
+      utrs: db.utrs,
+      activeNumbers: db.activeNumbers,
+      smsMessages: db.smsMessages,
+      transactions: db.transactions,
+      activityLogs: db.activityLogs
+    }
+  };
+
+  res.json({ success: true, backup: backupPayload });
+});
+
+// Admin: Import / Restore Database Backup JSON
+app.post('/api/admin/import-database', authenticateToken, requireAdmin, (req, res) => {
+  const { data } = req.body;
+  if (!data || typeof data !== 'object') {
+    return res.status(400).json({ success: false, error: 'Invalid backup format. Must contain data object.' });
+  }
+
+  if (Array.isArray(data.users)) {
+    data.users.forEach(u => {
+      if (!db.users.some(existing => existing.id === u.id || (existing.email && existing.email.toLowerCase() === (u.email || '').toLowerCase()))) {
+        db.users.push(u);
+      } else {
+        const idx = db.users.findIndex(existing => existing.id === u.id || (existing.email && existing.email.toLowerCase() === (u.email || '').toLowerCase()));
+        if (idx !== -1) db.users[idx] = { ...db.users[idx], ...u };
+      }
+    });
+  }
+
+  if (Array.isArray(data.utrs)) {
+    data.utrs.forEach(utr => {
+      if (!db.utrs.some(existing => existing.id === utr.id)) {
+        db.utrs.push(utr);
+      }
+    });
+  }
+
+  if (Array.isArray(data.activeNumbers)) {
+    data.activeNumbers.forEach(num => {
+      if (!db.activeNumbers.some(existing => existing.id === num.id || existing.phone === num.phone)) {
+        db.activeNumbers.push(num);
+      }
+    });
+  }
+
+  if (Array.isArray(data.smsMessages)) {
+    data.smsMessages.forEach(sms => {
+      if (!db.smsMessages.some(existing => existing.id === sms.id)) {
+        db.smsMessages.push(sms);
+      }
+    });
+  }
+
+  if (Array.isArray(data.transactions)) {
+    data.transactions.forEach(tx => {
+      if (!db.transactions.some(existing => existing.id === tx.id)) {
+        db.transactions.push(tx);
+      }
+    });
+  }
+
+  if (Array.isArray(data.activityLogs)) {
+    data.activityLogs.forEach(log => {
+      if (!db.activityLogs.some(existing => existing.id === log.id)) {
+        db.activityLogs.push(log);
+      }
+    });
+  }
+
+  saveDataToDisk();
+  logClientActivity(req.user.id, req.user.name, 'ADMIN_IMPORT_DB', 'Restored database backup');
+
+  res.json({
+    success: true,
+    message: 'Database backup successfully restored and synchronized!',
+    stats: {
+      users: db.users.length,
+      activeNumbers: db.activeNumbers.length,
+      transactions: db.transactions.length,
+      utrs: db.utrs.length
+    }
+  });
 });
 
 // Health check

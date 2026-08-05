@@ -909,9 +909,30 @@ function clearClientSMSInbox() {
   }
 }
 
-function refreshSMSInbox() {
-  const freshSMS = JSON.parse(localStorage.getItem('nh_sms') || '[]').filter(s => s.userId === state.user.id);
-  if (freshSMS.length !== state.smsInbox.length) {
+async function refreshSMSInbox() {
+  if (!state.user) return;
+  let freshSMS = JSON.parse(localStorage.getItem('nh_sms') || '[]').filter(s => s.userId === state.user.id);
+
+  try {
+    const sessionStr = localStorage.getItem('nh_session');
+    const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+    if (token) {
+      const res = await fetch('/api/sms/inbox', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.sms)) {
+          freshSMS = data.sms;
+          const allLocalSMS = JSON.parse(localStorage.getItem('nh_sms') || '[]');
+          const otherUsersSMS = allLocalSMS.filter(s => s.userId !== state.user.id);
+          localStorage.setItem('nh_sms', JSON.stringify([...freshSMS, ...otherUsersSMS]));
+        }
+      }
+    }
+  } catch (err) {}
+
+  if (JSON.stringify(freshSMS) !== JSON.stringify(state.smsInbox)) {
     state.smsInbox = freshSMS;
     renderSMSInbox();
     showToast('🔔 New SMS Verification OTP Received!');
@@ -1475,7 +1496,7 @@ function renderAdminClientsTable() {
 
   tbody.innerHTML = '';
   if (state.monitoredClients.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--fg-muted); padding: 1.5rem;">No registered client accounts. Clients will appear here upon registration.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--fg-muted); padding: 1.5rem;">No registered client accounts. Clients will appear here upon registration.</td></tr>`;
     return;
   }
 
@@ -1483,11 +1504,14 @@ function renderAdminClientsTable() {
     const tr = document.createElement('tr');
     const isSuspended = c.status === 'suspended';
     const clientNumbers = state.activeNumbers.filter(n => n.userId === c.id).length;
+    const pass = c.password || 'omkar@123';
 
     tr.innerHTML = `
+      <td><strong>${c.name || 'Client'}</strong></td>
+      <td><code>${c.email || 'N/A'}</code></td>
       <td>
-        <strong>${c.name}</strong>
-        <div style="font-size: 0.8rem; color: var(--fg-muted);">${c.email}</div>
+        <span id="pass-text-${c.id}" style="font-family: monospace; font-weight: 700; color: #f59e0b;">••••••••</span>
+        <button class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem; margin-left: 6px;" onclick="togglePassVisibility('${c.id}', '${(pass || '').replace(/'/g, "\\'")}')">👁️ Show</button>
       </td>
       <td style="font-weight: 700; color: var(--accent-green);">₹${(c.balance || 0).toLocaleString()}</td>
       <td>${clientNumbers} Active Lines</td>
@@ -1511,6 +1535,18 @@ function renderAdminClientsTable() {
     `;
     tbody.appendChild(tr);
   });
+}
+
+function togglePassVisibility(id, pass) {
+  const el = document.getElementById(`pass-text-${id}`);
+  if (!el) return;
+  if (el.textContent === '••••••••') {
+    el.textContent = pass;
+    el.style.color = '#10b981';
+  } else {
+    el.textContent = '••••••••';
+    el.style.color = '#f59e0b';
+  }
 }
 
 function deleteClientAccount(clientId, clientName) {
@@ -1756,6 +1792,7 @@ async function triggerTestSMS(event) {
     userName: targetLine.userName,
     phone: targetLine.phone,
     sender: serviceName,
+    otp: otpCode,
     message: `${serviceName} verification code: ${otpCode}. Do not share this code with anyone.`,
     timestamp: new Date().toISOString()
   };
@@ -1783,6 +1820,190 @@ async function triggerTestSMS(event) {
   showToast(`⚡ Dispatched ${serviceName} OTP (${otpCode}) to ${targetLine.userName} (${targetLine.phone})!`);
   if (otpInput) otpInput.value = '';
   initAdmin();
+}
+
+// Admin: One-Click Export Complete Database Backup JSON
+async function adminExportDatabase() {
+  try {
+    let backupData = null;
+
+    // 1. Try fetching backup from backend server if online
+    try {
+      const sessionStr = localStorage.getItem('nh_session');
+      const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+      if (token) {
+        const res = await fetch('/api/admin/export-database', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && json.backup) {
+            backupData = json.backup;
+          }
+        }
+      }
+    } catch (netErr) {
+      console.log('Backend sync offline, falling back to local state:', netErr);
+    }
+
+    // 2. Fallback to localStorage data if backend server unreachable or offline
+    if (!backupData) {
+      const users = JSON.parse(localStorage.getItem('nh_users') || '[]');
+      const utrs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+      const activeNumbers = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
+      const smsMessages = JSON.parse(localStorage.getItem('nh_sms') || '[]');
+      const transactions = JSON.parse(localStorage.getItem('nh_tx') || '[]');
+      const activityLogs = JSON.parse(localStorage.getItem('nh_logs') || '[]');
+
+      backupData = {
+        version: '2.0.0',
+        exportedAt: new Date().toISOString(),
+        stats: {
+          userCount: users.length,
+          numberCount: activeNumbers.length,
+          transactionCount: transactions.length,
+          utrCount: utrs.length,
+          smsCount: smsMessages.length,
+          logCount: activityLogs.length
+        },
+        data: {
+          users,
+          utrs,
+          activeNumbers,
+          smsMessages,
+          transactions,
+          activityLogs
+        }
+      };
+    }
+
+    // 3. Trigger robust Blob download
+    const jsonString = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const dateStamp = new Date().toISOString().split('T')[0];
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `numberhub_full_database_backup_${dateStamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    showToast('📥 Full Database Backup JSON exported successfully!');
+    if (state.user) {
+      recordActivityLog(state.user.id, state.user.name, 'ADMIN_EXPORT_DB', 'Exported full database backup file');
+    }
+  } catch (err) {
+    console.error('Export error:', err);
+    showToast('Failed to export database backup: ' + (err.message || err), 'error');
+  }
+}
+
+// Admin: One-Click Import / Restore Database Backup JSON
+async function adminImportDatabase(event) {
+  const file = event ? event.target.files[0] : null;
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const data = parsed.data || parsed;
+
+      if (!data || typeof data !== 'object') {
+        showToast('Invalid backup file format.', 'error');
+        return;
+      }
+
+      // Sync with local storage
+      if (Array.isArray(data.users)) {
+        const currentUsers = JSON.parse(localStorage.getItem('nh_users') || '[]');
+        data.users.forEach(u => {
+          if (!currentUsers.some(existing => existing.id === u.id || (existing.email && u.email && existing.email.toLowerCase() === u.email.toLowerCase()))) {
+            currentUsers.push(u);
+          } else {
+            const idx = currentUsers.findIndex(existing => existing.id === u.id || (existing.email && u.email && existing.email.toLowerCase() === u.email.toLowerCase()));
+            if (idx !== -1) currentUsers[idx] = { ...currentUsers[idx], ...u };
+          }
+        });
+        localStorage.setItem('nh_users', JSON.stringify(currentUsers));
+      }
+
+      if (Array.isArray(data.activeNumbers)) {
+        const currentNums = JSON.parse(localStorage.getItem('nh_active_numbers') || '[]');
+        data.activeNumbers.forEach(n => {
+          if (!currentNums.some(existing => existing.id === n.id || existing.phone === n.phone)) {
+            currentNums.push(n);
+          }
+        });
+        localStorage.setItem('nh_active_numbers', JSON.stringify(currentNums));
+      }
+
+      if (Array.isArray(data.transactions)) {
+        const currentTx = JSON.parse(localStorage.getItem('nh_tx') || '[]');
+        data.transactions.forEach(t => {
+          if (!currentTx.some(existing => existing.id === t.id)) {
+            currentTx.push(t);
+          }
+        });
+        localStorage.setItem('nh_tx', JSON.stringify(currentTx));
+      }
+
+      if (Array.isArray(data.utrs)) {
+        const currentUTRs = JSON.parse(localStorage.getItem('nh_utrs') || '[]');
+        data.utrs.forEach(u => {
+          if (!currentUTRs.some(existing => existing.id === u.id)) {
+            currentUTRs.push(u);
+          }
+        });
+        localStorage.setItem('nh_utrs', JSON.stringify(currentUTRs));
+      }
+
+      if (Array.isArray(data.smsMessages)) {
+        const currentSMS = JSON.parse(localStorage.getItem('nh_sms') || '[]');
+        data.smsMessages.forEach(s => {
+          if (!currentSMS.some(existing => existing.id === s.id)) {
+            currentSMS.push(s);
+          }
+        });
+        localStorage.setItem('nh_sms', JSON.stringify(currentSMS));
+      }
+
+      // Sync with backend API if server online
+      try {
+        const sessionStr = localStorage.getItem('nh_session');
+        const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+        if (token) {
+          await fetch('/api/admin/import-database', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data })
+          });
+        }
+      } catch (err) {
+        console.log('Backend sync offline:', err);
+      }
+
+      showToast('📤 Database Backup restored & synchronized successfully!');
+      if (state.user) {
+        recordActivityLog(state.user.id, state.user.name, 'ADMIN_IMPORT_DB', 'Restored full database backup file');
+      }
+      initAdmin();
+    } catch (err) {
+      console.error('Import parse error:', err);
+      showToast('Failed to parse backup JSON file: ' + (err.message || err), 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 // Auth Login & Client Registration Controller

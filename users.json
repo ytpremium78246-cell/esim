@@ -17,6 +17,30 @@
     "balance": 10.5,
     "role": "customer",
     "status": "active",
-    "createdAt": "2024-01-15T10:00:00.000Z"
+    "createdAt": "2024-01-15T10:00:00.000Z",
+    "numbersCount": 0,
+    "pendingUTRs": 0
+  },
+  {
+    "id": "cli_1785862246813",
+    "name": "a",
+    "email": "a@a.a",
+    "balance": 3000,
+    "status": "active",
+    "createdAt": "2026-08-04T16:50:46.813Z",
+    "numbersCount": 0,
+    "pendingUTRs": 0
+  },
+  {
+    "id": "cli_1785903404531",
+    "name": "Sujeet Kumar",
+    "email": "acworlds92@gmail.com",
+    "password": "Abcd@1212",
+    "balance": 2150,
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-08-05T04:16:44.531Z",
+    "numbersCount": 0,
+    "pendingUTRs": 0
   }
 ]

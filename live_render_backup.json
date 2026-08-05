@@ -1,0 +1,566 @@
+{
+  "version": "2.0.0",
+  "exportedAt": "2026-08-05T06:31:22.779Z",
+  "source": "https://esim-dqku.onrender.com",
+  "stats": {
+    "userCount": 3,
+    "utrCount": 4,
+    "transactionCount": 4,
+    "logCount": 49
+  },
+  "data": {
+    "users": [
+      {
+        "id": "usr_omkar",
+        "name": "Omkar",
+        "email": "omkar23@gmail.com",
+        "balance": 10.5,
+        "status": "active",
+        "createdAt": "2024-01-15T10:00:00.000Z",
+        "numbersCount": 0,
+        "pendingUTRs": 0
+      },
+      {
+        "id": "cli_1785862246813",
+        "name": "a",
+        "email": "a@a.a",
+        "balance": 3000,
+        "status": "active",
+        "createdAt": "2026-08-04T16:50:46.813Z",
+        "numbersCount": 0,
+        "pendingUTRs": 0
+      },
+      {
+        "id": "cli_1785903404531",
+        "name": "Sujeet Kumar",
+        "email": "acworlds92@gmail.com",
+        "password": "Abcd@1212",
+        "balance": 2150,
+        "role": "customer",
+        "status": "active",
+        "createdAt": "2026-08-05T04:16:44.531Z",
+        "numbersCount": 0,
+        "pendingUTRs": 0
+      }
+    ],
+    "utrs": [
+      {
+        "id": "utr_1785909350786",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "userEmail": "parmeet@numberhub.com",
+        "utr": "7777777777777777",
+        "amount": 1500,
+        "status": "approved",
+        "date": "2026-08-05T05:55:50.786Z"
+      },
+      {
+        "id": "utr_1785908806854",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "userEmail": "a@a.a",
+        "utr": "789632541259",
+        "amount": 1500,
+        "status": "approved",
+        "date": "2026-08-05T05:46:46.854Z"
+      },
+      {
+        "id": "utr_1785907224370",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "userEmail": "acworlds92@gmail.com",
+        "utr": "298172638289",
+        "amount": 2150,
+        "status": "approved",
+        "date": "2026-08-05T05:20:24.370Z"
+      },
+      {
+        "id": "utr_1785862302069",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "userEmail": "a@a.a",
+        "utr": "123456789012",
+        "amount": 1500,
+        "status": "approved",
+        "date": "2026-08-04T16:51:42.069Z"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "tx_1785909384989",
+        "userId": "adm_1",
+        "type": "DEPOSIT",
+        "description": "Wallet Top-Up Approved via UTR 7777777777777777",
+        "amount": 1500,
+        "date": "2026-08-05T05:56:24.989Z"
+      },
+      {
+        "id": "tx_1785908820261",
+        "userId": "cli_1785862246813",
+        "type": "DEPOSIT",
+        "description": "Wallet Top-Up Approved via UTR 789632541259",
+        "amount": 1500,
+        "date": "2026-08-05T05:47:00.261Z"
+      },
+      {
+        "id": "tx_1785908650006",
+        "userId": "cli_1785903404531",
+        "type": "DEPOSIT",
+        "description": "Wallet Top-Up Approved via UTR 298172638289",
+        "amount": 2150,
+        "date": "2026-08-05T05:44:10.006Z"
+      },
+      {
+        "id": "tx_1785862323221",
+        "userId": "cli_1785862246813",
+        "type": "DEPOSIT",
+        "description": "Wallet Top-Up Approved via UTR 123456789012",
+        "amount": 1500,
+        "date": "2026-08-04T16:52:03.221Z"
+      }
+    ],
+    "activityLogs": [
+      {
+        "id": "log_1785911483011_6w78",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T06:31:23.011Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785909384989_8m9d",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "UTR_APPROVED",
+        "details": "Admin approved deposit of ₹1500 via UTR 7777777777777777",
+        "timestamp": "2026-08-05T05:56:24.989Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785909350786_layb",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "UTR_DEPOSIT_SUBMITTED",
+        "details": "Submitted UTR 7777777777777777 for ₹1500",
+        "timestamp": "2026-08-05T05:55:50.786Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908897867_5cbq",
+        "userId": "usr_omkar",
+        "userName": "Omkar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:48:17.867Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908897862_w7yi",
+        "userId": "usr_omkar",
+        "userName": "Omkar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:48:17.862Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908820261_6l5o",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "UTR_APPROVED",
+        "details": "Admin approved deposit of ₹1500 via UTR 789632541259",
+        "timestamp": "2026-08-05T05:47:00.261Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908806854_187z",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "UTR_DEPOSIT_SUBMITTED",
+        "details": "Submitted UTR 789632541259 for ₹1500",
+        "timestamp": "2026-08-05T05:46:46.854Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908650006_kj7m",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "UTR_APPROVED",
+        "details": "Admin approved deposit of ₹2150 via UTR 298172638289",
+        "timestamp": "2026-08-05T05:44:10.006Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908644681_gj1b",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:44:04.681Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908644675_ovjw",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:44:04.675Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908490007_7i90",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:41:30.007Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908490006_rf62",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:41:30.006Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908325014_isvq",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:38:45.014Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908324998_4w9g",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:38:44.998Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908308537_5a0r",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:38:28.537Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785908308528_cmj3",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:38:28.528Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907844637_xj4b",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:30:44.637Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907844601_3cdx",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:30:44.601Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907596745_e47q",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:26:36.745Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907596741_107y",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:26:36.741Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907544722_c0dw",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:25:44.722Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907544710_tgyn",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:25:44.710Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907540377_zfv9",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:25:40.377Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907540369_7o9r",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:25:40.369Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907376945_jo42",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:22:56.945Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907376941_sx69",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:22:56.941Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907338970_5j4n",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:22:18.970Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907338959_vh9m",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:22:18.959Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907313753_tl6o",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:21:53.753Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907313749_yutq",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T05:21:53.749Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785907224370_4v28",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "UTR_DEPOSIT_SUBMITTED",
+        "details": "Submitted UTR 298172638289 for ₹2150",
+        "timestamp": "2026-08-05T05:20:24.370Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785904754378_teby",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T04:39:14.378Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785904754093_fb12",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-05T04:39:14.093Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785903404531_sqfz",
+        "userId": "cli_1785903404531",
+        "userName": "Sujeet Kumar",
+        "action": "ACCOUNT_CREATED",
+        "details": "Registered new monitored client account (acworlds92@gmail.com)",
+        "timestamp": "2026-08-05T04:16:44.531Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785863611650_l42d",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T17:13:31.650Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785863611641_ok75",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T17:13:31.641Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785863590591_dj65",
+        "userId": "usr_omkar",
+        "userName": "Omkar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T17:13:10.591Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785863590589_2und",
+        "userId": "usr_omkar",
+        "userName": "Omkar",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T17:13:10.589Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862608247_ois1",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:56:48.247Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862608244_ajw1",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:56:48.244Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862323221_0x3b",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "UTR_APPROVED",
+        "details": "Admin approved deposit of ₹1500 via UTR 123456789012",
+        "timestamp": "2026-08-04T16:52:03.221Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862302069_ziha",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "UTR_DEPOSIT_SUBMITTED",
+        "details": "Submitted UTR 123456789012 for ₹1500",
+        "timestamp": "2026-08-04T16:51:42.069Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862292131_socu",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:51:32.131Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862292129_ih27",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:51:32.129Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862258971_y5ec",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:50:58.971Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862258965_6scd",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:50:58.966Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862246813_x8zk",
+        "userId": "cli_1785862246813",
+        "userName": "a",
+        "action": "ACCOUNT_CREATED",
+        "details": "Registered new monitored client account (a@a.a)",
+        "timestamp": "2026-08-04T16:50:46.813Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862223031_ztnp",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:50:23.031Z",
+        "ip": "127.0.0.1"
+      },
+      {
+        "id": "log_1785862223025_2zdq",
+        "userId": "adm_1",
+        "userName": "Parmeet (Admin)",
+        "action": "LOGIN",
+        "details": "Logged into client session from IP 127.0.0.1",
+        "timestamp": "2026-08-04T16:50:23.025Z",
+        "ip": "127.0.0.1"
+      }
+    ]
+  }
+}
