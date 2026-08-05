@@ -27,7 +27,7 @@ const COUNTRY_TIERS = [
   { tier: 5, min: 4250, max: 5100, countries: ['Colombia', 'Ecuador', 'Azerbaijan', 'Georgia', 'Kazakhstan', 'Belarus', 'Serbia', 'Costa Rica', 'Jamaica', 'Barbados', 'Antigua and Barbuda', 'Saint Lucia'] },
   { tier: 6, min: 5100, max: 5940, countries: ['Mexico', 'Brazil', 'Turkey', 'Australia', 'Canada', 'Taiwan', 'Israel', 'Macao', 'Iceland', 'Seychelles', 'Maldives'] },
   { tier: 7, min: 5950, max: 6300, countries: ['Singapore', 'Kuwait', 'Cayman Islands', 'Aruba', 'Anguilla', 'French Guiana', 'Guadeloupe', 'Niue', 'Botswana', 'Trinidad and Tobago'] },
-  { tier: 0, outOfStock: true, countries: ['USA', 'Switzerland', 'Luxembourg', 'Norway', 'Ireland'] }
+  { tier: 0, outOfStock: true, countries: ['USA', 'Switzerland', 'Luxembourg', 'Norway', 'Ireland', 'Papua New Guinea'] }
 ];
 
 function generateCountryCatalog() {
