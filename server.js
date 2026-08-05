@@ -19,6 +19,7 @@ const UTRS_FILE_PATH = path.join(__dirname, 'utrs.json');
 const NUMBERS_FILE_PATH = path.join(__dirname, 'numbers.json');
 const TX_FILE_PATH = path.join(__dirname, 'transactions.json');
 const LOGS_FILE_PATH = path.join(__dirname, 'logs.json');
+const COUNTRIES_FILE_PATH = path.join(__dirname, 'countries.json');
 
 // Middleware
 app.use(cors());
@@ -61,7 +62,8 @@ const db = {
   activeNumbers: [],
   smsMessages: [],
   transactions: [],
-  activityLogs: []
+  activityLogs: [],
+  countries: []
 };
 
 // Persistence functions
@@ -96,6 +98,10 @@ function loadDataFromDisk() {
       const loadedLogs = JSON.parse(fs.readFileSync(LOGS_FILE_PATH, 'utf8'));
       if (Array.isArray(loadedLogs)) db.activityLogs = loadedLogs;
     }
+    if (fs.existsSync(COUNTRIES_FILE_PATH)) {
+      const loadedCountries = JSON.parse(fs.readFileSync(COUNTRIES_FILE_PATH, 'utf8'));
+      if (Array.isArray(loadedCountries)) db.countries = loadedCountries;
+    }
   } catch (err) {
     console.error('Error loading data from disk:', err);
   }
@@ -108,6 +114,7 @@ function saveDataToDisk() {
     fs.writeFileSync(NUMBERS_FILE_PATH, JSON.stringify(db.activeNumbers, null, 2), 'utf8');
     fs.writeFileSync(TX_FILE_PATH, JSON.stringify(db.transactions, null, 2), 'utf8');
     fs.writeFileSync(LOGS_FILE_PATH, JSON.stringify(db.activityLogs, null, 2), 'utf8');
+    fs.writeFileSync(COUNTRIES_FILE_PATH, JSON.stringify(db.countries, null, 2), 'utf8');
   } catch (err) {
     console.error('Error saving data to disk:', err);
   }
@@ -560,6 +567,24 @@ app.post('/api/admin/clients/delete', authenticateToken, requireAdmin, (req, res
   saveDataToDisk();
 
   res.json({ success: true, message: `Deleted client account ${deletedClient.name}` });
+});
+
+// Admin: Update Country Line Price & Stock Availability
+app.post('/api/admin/countries/update', authenticateToken, requireAdmin, (req, res) => {
+  const { countryId, price, inStock } = req.body;
+  if (!db.countries) db.countries = [];
+
+  const idx = db.countries.findIndex(c => c.id === countryId);
+  if (idx !== -1) {
+    if (price !== undefined) db.countries[idx].price = price;
+    if (inStock !== undefined) db.countries[idx].inStock = inStock;
+  } else {
+    db.countries.push({ id: countryId, price, inStock });
+  }
+
+  logClientActivity(req.user.id, req.user.name, 'ADMIN_UPDATE_COUNTRY', `Updated country ${countryId} specifications (Price: ₹${price}, InStock: ${inStock})`);
+  saveDataToDisk();
+  res.json({ success: true, message: `Updated country ${countryId} catalog specifications` });
 });
 
 // Admin: Toggle Country Inventory Stock Status

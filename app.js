@@ -1743,11 +1743,14 @@ function renderAdminInventory() {
     tr.innerHTML = `
       <td>${c.flag} ${c.name}</td>
       <td>Tier ${c.tier || 'N/A'}</td>
-      <td>₹${c.price ? c.price.toLocaleString() : 'N/A'}</td>
+      <td><strong style="color: var(--accent-green);">₹${(c.price || 0).toLocaleString()}</strong></td>
       <td><span class="tier-badge ${!c.inStock ? 'out' : ''}">${c.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
-      <td>
-        <button class="btn btn-secondary btn-sm" onclick="toggleStock(${c.id})">
-          ${c.inStock ? 'Mark Out of Stock' : 'Mark In Stock'}
+      <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="adminEditCountryPrice(${c.id}, '${(c.name || '').replace(/'/g, "\\'")}', ${c.price || 0})">
+          ✏️ Edit Price
+        </button>
+        <button class="btn ${c.inStock ? 'btn-secondary' : 'btn-primary'} btn-sm" onclick="toggleStock(${c.id})">
+          ${c.inStock ? '❌ Mark Out of Stock' : '⚡ Mark In Stock'}
         </button>
       </td>
     `;
@@ -1755,13 +1758,75 @@ function renderAdminInventory() {
   });
 }
 
-function toggleStock(countryId) {
+async function adminEditCountryPrice(countryId, countryName, currentPrice) {
+  const newPriceStr = prompt(`Set custom line price (₹) for ${countryName}:`, currentPrice);
+  if (newPriceStr === null) return;
+
+  const newPrice = parseInt(newPriceStr.trim(), 10);
+  if (isNaN(newPrice) || newPrice < 0) {
+    showToast('Invalid price entered.', 'error');
+    return;
+  }
+
+  const countries = JSON.parse(localStorage.getItem('nh_countries') || '[]');
+  const idx = countries.findIndex(c => c.id === countryId);
+  if (idx !== -1) {
+    countries[idx].price = newPrice;
+    localStorage.setItem('nh_countries', JSON.stringify(countries));
+    state.countries = countries;
+
+    // Sync with backend API if online
+    try {
+      const sessionStr = localStorage.getItem('nh_session');
+      const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+      if (token) {
+        await fetch('/api/admin/countries/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ countryId, price: newPrice, inStock: countries[idx].inStock })
+        });
+      }
+    } catch (err) {}
+
+    showToast(`Updated price for ${countryName} to ₹${newPrice.toLocaleString()}`);
+    if (state.user) {
+      recordActivityLog(state.user.id, state.user.name, 'ADMIN_UPDATE_PRICE', `Updated ${countryName} price to ₹${newPrice}`);
+    }
+    initAdmin();
+  }
+}
+
+async function toggleStock(countryId) {
   const countries = JSON.parse(localStorage.getItem('nh_countries') || '[]');
   const idx = countries.findIndex(c => c.id === countryId);
   if (idx !== -1) {
     countries[idx].inStock = !countries[idx].inStock;
     localStorage.setItem('nh_countries', JSON.stringify(countries));
-    showToast(`Updated stock status for ${countries[idx].name}`);
+    state.countries = countries;
+
+    // Sync with backend API if online
+    try {
+      const sessionStr = localStorage.getItem('nh_session');
+      const token = state.token || (sessionStr ? JSON.parse(sessionStr).token : '');
+      if (token) {
+        await fetch('/api/admin/countries/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ countryId, inStock: countries[idx].inStock, price: countries[idx].price })
+        });
+      }
+    } catch (err) {}
+
+    showToast(`Updated stock status for ${countries[idx].name} to ${countries[idx].inStock ? 'In Stock' : 'Out of Stock'}`);
+    if (state.user) {
+      recordActivityLog(state.user.id, state.user.name, 'ADMIN_TOGGLE_STOCK', `Toggled ${countries[idx].name} stock to ${countries[idx].inStock ? 'IN_STOCK' : 'OUT_OF_STOCK'}`);
+    }
     initAdmin();
   }
 }
